@@ -1,0 +1,109 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    match /dailyMissions/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /questions/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /storyEpisodes/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /gameConfig/rules {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /users/{uid} {
+      allow read, create: if isOwner(uid);
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL'])
+        && request.resource.data.keys().hasOnly(resource.data.keys());
+      allow delete: if false;
+
+      match /answers/{missionId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['missionId', 'dateKey', 'selectedIndex', 'comment', 'createdAt'])
+          && request.resource.data.missionId == missionId
+          && request.resource.data.dateKey is string
+          && request.resource.data.dateKey.matches('^\\d{4}-\\d{2}-\\d{2}$')
+          && request.resource.data.selectedIndex is int
+          && request.resource.data.selectedIndex >= 0
+          && request.resource.data.selectedIndex <= 3
+          && (
+            !('comment' in request.resource.data)
+            || (
+              request.resource.data.comment is string
+              && request.resource.data.comment.size() >= 50
+            )
+          )
+          && request.resource.data.createdAt is timestamp;
+        allow update: if isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['comment'])
+          && (
+            !('comment' in request.resource.data)
+            || (
+              request.resource.data.comment is string
+              && request.resource.data.comment.size() >= 50
+            )
+          );
+        allow delete: if false;
+      }
+
+      match /answersByDate/{dateKey} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['dateKey', 'missionId', 'selectedIndex', 'comment', 'createdAt'])
+          && request.resource.data.dateKey == dateKey
+          && request.resource.data.dateKey is string
+          && request.resource.data.dateKey.matches('^\\d{4}-\\d{2}-\\d{2}$')
+          && request.resource.data.missionId is string
+          && request.resource.data.selectedIndex is int
+          && request.resource.data.selectedIndex >= 0
+          && request.resource.data.selectedIndex <= 3
+          && (
+            !('comment' in request.resource.data)
+            || (
+              request.resource.data.comment is string
+              && request.resource.data.comment.size() >= 50
+            )
+          )
+          && request.resource.data.createdAt is timestamp;
+        allow update: if isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['comment'])
+          && (
+            !('comment' in request.resource.data)
+            || (
+              request.resource.data.comment is string
+              && request.resource.data.comment.size() >= 50
+            )
+          );
+        allow delete: if false;
+      }
+    }
+
+    match /answers/{docId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

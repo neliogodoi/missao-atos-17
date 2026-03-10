@@ -1,0 +1,21 @@
+<section class="narrative-page">
+  <app-mission-card [title]="'Narrativa Contínua'" [subtitle]="'Leia toda a história em sequência'" status="active">
+    <div body class="narrative-body" *ngIf="episodes$ | async as episodes">
+      <p class="empty-state" *ngIf="episodes.length === 0">
+        Nenhum episódio disponível ainda.
+      </p>
+
+      <ol class="episode-list" *ngIf="episodes.length > 0">
+        <li class="episode-item" *ngFor="let episode of episodes; let i = index">
+          <header class="episode-head">
+            <strong>Capítulo {{ i + 1 }} · {{ episode.title }}</strong>
+            <small *ngIf="episode.createdAt">{{ episode.createdAt | date: 'dd/MM/yyyy' }}</small>
+          </header>
+          <p class="episode-content">{{ episode.content }}</p>
+        </li>
+      </ol>
+
+      <a class="btn btn-secondary back-link" routerLink="/play">Voltar para missão de hoje</a>
+    </div>
+  </app-mission-card>
+</section>

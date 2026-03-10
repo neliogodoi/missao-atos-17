@@ -1,0 +1,56 @@
+:host {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 90;
+  pointer-events: none;
+}
+
+.toast-host {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: end;
+}
+
+.toast-card {
+  max-width: min(92vw, 24rem);
+  border-radius: 0.75rem;
+  border: 1px solid var(--stroke);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0.7rem 0.8rem;
+  box-shadow: var(--shadow-panel);
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  animation: toast-in 220ms ease-out;
+}
+
+.toast-card.success {
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  color: var(--text-on-success);
+}
+
+.toast-card.error {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--text-on-danger);
+}
+
+.toast-card.info {
+  border-color: var(--neutral-border);
+  background: var(--neutral-bg);
+  color: var(--text-on-neutral);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

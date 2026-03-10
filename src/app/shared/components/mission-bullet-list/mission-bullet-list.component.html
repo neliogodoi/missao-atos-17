@@ -1,0 +1,6 @@
+<ul class="mission-bullets">
+  <li *ngFor="let item of items; let i = index; trackBy: trackByIndex">
+    <span class="bullet" aria-hidden="true">{{ bulletFor(i) }}</span>
+    <span class="text">{{ item }}</span>
+  </li>
+</ul>

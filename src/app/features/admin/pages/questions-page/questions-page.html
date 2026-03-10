@@ -1,0 +1,59 @@
+<section class="panel">
+  <h3>Questions</h3>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+    <label>
+      Texto da pergunta
+      <textarea rows="3" formControlName="text"></textarea>
+    </label>
+
+    <div class="grid-2">
+      <label>
+        Opção 1
+        <input type="text" formControlName="option0" />
+      </label>
+      <label>
+        Opção 2
+        <input type="text" formControlName="option1" />
+      </label>
+      <label>
+        Opção 3
+        <input type="text" formControlName="option2" />
+      </label>
+      <label>
+        Opção 4
+        <input type="text" formControlName="option3" />
+      </label>
+    </div>
+
+    <label>
+      Índice correto (1-4)
+      <input type="number" min="1" max="4" formControlName="correctIndex" />
+    </label>
+
+    <div class="actions">
+      <button type="submit" [disabled]="loading()">
+        {{ editingId() ? 'Salvar edição' : 'Criar question' }}
+      </button>
+      <button type="button" (click)="onCancelEdit()" *ngIf="editingId()">Cancelar</button>
+    </div>
+  </form>
+
+  <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <div class="list" *ngIf="questions$ | async as questions">
+    <article class="item" *ngFor="let question of questions">
+      <div>
+        <strong>{{ question.text }}</strong>
+        <p>Correta: {{ question.correctIndex !== undefined ? question.correctIndex + 1 : '-' }}</p>
+        <ol>
+          <li *ngFor="let option of question.options">{{ option }}</li>
+        </ol>
+      </div>
+
+      <div class="item-actions">
+        <button type="button" (click)="onEdit(question)">Editar</button>
+      </div>
+    </article>
+  </div>
+</section>

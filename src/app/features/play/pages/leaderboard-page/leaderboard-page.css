@@ -1,0 +1,45 @@
+.panel {
+  display: grid;
+  gap: 1rem;
+}
+
+h3 {
+  margin: 0;
+}
+
+.list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.row {
+  border: 1px solid var(--stroke);
+  border-radius: 0.8rem;
+  background: var(--surface);
+  padding: 0.72rem 0.85rem;
+  display: grid;
+  grid-template-columns: 50px 1fr auto auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.row strong {
+  color: var(--blue);
+}
+
+.row span {
+  color: var(--text);
+}
+
+@media (max-width: 700px) {
+  .row {
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 0.55rem;
+    align-items: start;
+  }
+
+  .row :nth-child(3),
+  .row :nth-child(4) {
+    grid-column: 2;
+  }
+}

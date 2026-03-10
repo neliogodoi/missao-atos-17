@@ -1,0 +1,24 @@
+<article class="mission-card" [ngClass]="status">
+  <header class="mission-header">
+    <div class="mission-titles">
+      <h3 class="mission-title font-title">{{ title }}</h3>
+      <p *ngIf="subtitle" class="mission-subtitle">{{ subtitle }}</p>
+    </div>
+
+    <div class="mission-header-right">
+      <ng-content select="[headerRight]" />
+    </div>
+  </header>
+
+  <div *ngIf="isDone" class="status-badge done" aria-label="Missão concluída">
+    ✅ CONCLUÍDA
+  </div>
+
+  <div *ngIf="isLocked" class="status-badge locked" aria-label="Missão bloqueada">
+    ⏳ Aguarde
+  </div>
+
+  <section class="mission-body">
+    <ng-content select="[body]" />
+  </section>
+</article>

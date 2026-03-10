@@ -1,0 +1,15 @@
+<section class="panel">
+  <h3>Armor</h3>
+
+  <div *ngIf="armorItems$ | async as items">
+    <p *ngIf="items.length === 0">Nenhum item com XP ainda.</p>
+
+    <div class="list" *ngIf="items.length > 0">
+      <article class="item" *ngFor="let item of items">
+        <strong>{{ item.itemKey }}</strong>
+        <p>Level: {{ item.level }}</p>
+        <p>XP: {{ item.xp }}</p>
+      </article>
+    </div>
+  </div>
+</section>

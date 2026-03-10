@@ -1,0 +1,71 @@
+<section class="panel">
+  <h3>Daily Missions</h3>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+    <div class="grid-2">
+      <label>
+        dateKey (YYYY-MM-DD)
+        <input type="date" formControlName="dateKey" />
+      </label>
+
+      <label>
+        Story Episode
+        <select formControlName="storyEpisodeId">
+          <option value="">Selecione...</option>
+          <option *ngFor="let episode of episodes()" [value]="episode.id">{{ episode.title }}</option>
+        </select>
+      </label>
+    </div>
+
+    <label>
+      Question
+      <select formControlName="questionId">
+        <option value="">Selecione...</option>
+        <option *ngFor="let question of questions()" [value]="question.id">{{ question.text }}</option>
+      </select>
+    </label>
+
+    <small class="item-xp-breakdown">
+      Regra fixa de XP: Participação 1 · Acerto +2 · Comentário (min. 50) +3, mesmo com erro
+    </small>
+
+    <div class="actions">
+      <button type="submit" [disabled]="loading()">{{ editingId() ? 'Salvar edição' : 'Criar missão' }}</button>
+      <button type="button" (click)="onCancelEdit()" *ngIf="editingId()">Cancelar</button>
+    </div>
+  </form>
+
+  <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <div class="list" *ngIf="missions$ | async as missions">
+    <article class="item" *ngFor="let mission of missions">
+      <div class="item-main">
+        <div class="item-head">
+          <strong>{{ mission.dateKey }}</strong>
+          <span class="xp-pill">XP total: {{ mission.baseXp + mission.bonusCorrectXp + mission.bonusStreakXp }}</span>
+        </div>
+
+        <p class="item-line">
+          <span class="item-label">Episódio</span>
+          <span class="item-value">{{ getEpisodeTitle(mission.storyEpisodeId) }}</span>
+        </p>
+
+        <p class="item-line">
+          <span class="item-label">Pergunta</span>
+          <span class="item-value">{{ getQuestionText(mission.questionId) }}</span>
+        </p>
+
+        <small class="item-xp-breakdown">
+          Participação: {{ mission.baseXp }} · Acerto: {{ mission.bonusCorrectXp }} · Comentário (min. 50):
+          {{ mission.bonusStreakXp }}
+        </small>
+      </div>
+
+      <div class="item-actions">
+        <button type="button" (click)="onEdit(mission)">Editar</button>
+        <button type="button" (click)="onCopyMissionText(mission)">Copiar texto da Missão</button>
+        <button type="button" (click)="onDelete(mission.id)">Excluir</button>
+      </div>
+    </article>
+  </div>
+</section>

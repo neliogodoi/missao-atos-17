@@ -1,0 +1,37 @@
+.rules-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.rules-body {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.rules-body p {
+  margin: 0;
+  color: var(--text);
+}
+
+.tip-block {
+  border: 1px dashed var(--stroke);
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.8rem;
+  background: var(--surface);
+  display: grid;
+  gap: 0.25rem;
+}
+
+.tip-block strong {
+  color: var(--blue);
+}
+
+.tip-block span {
+  color: var(--text);
+}
+
+.back-btn {
+  width: 100%;
+  margin-top: 0.25rem;
+  text-decoration: none;
+}

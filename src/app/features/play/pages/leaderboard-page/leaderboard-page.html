@@ -1,0 +1,12 @@
+<section class="panel">
+  <h3>Leaderboard</h3>
+
+  <div class="list" *ngIf="topUsers$ | async as users">
+    <article class="row" *ngFor="let user of users; let i = index">
+      <strong>#{{ i + 1 }}</strong>
+      <span>{{ user.displayName || user.userId }}</span>
+      <span>{{ user.totalXp }} XP</span>
+      <span>Streak: {{ user.streak || 0 }}</span>
+    </article>
+  </div>
+</section>

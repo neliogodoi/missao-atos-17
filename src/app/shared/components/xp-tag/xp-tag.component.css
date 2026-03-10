@@ -1,0 +1,36 @@
+:host {
+  display: inline-flex;
+}
+
+.xp-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--blue) 50%, transparent 50%);
+  background: color-mix(in srgb, var(--blue) 22%, transparent 78%);
+  color: var(--text-on-success);
+  font-weight: 800;
+  font-size: 0.78rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.xp-tag.xl {
+  padding: 0.28rem 0.84rem;
+  font-size: 1.09rem;
+}
+
+.xp-tag.amethyst {
+  border-color: color-mix(in srgb, var(--surface-2) 85%, transparent 15%);
+  background: var(--chip-bg);
+  color: var(--text-on-neutral);
+}
+
+.xp-tag.streak {
+  border-color: color-mix(in srgb, #ff8a00 55%, transparent 45%);
+  background: color-mix(in srgb, #ff8a00 30%, transparent 70%);
+  color: #ffe7c6;
+}

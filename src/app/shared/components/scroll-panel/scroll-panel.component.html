@@ -1,0 +1,20 @@
+<section class="scroll-panel">
+  <header
+    class="scroll-header"
+    role="button"
+    tabindex="0"
+    [attr.aria-expanded]="isExpanded"
+    (click)="toggle()"
+    (keydown.enter)="toggle()"
+    (keydown.space)="onHeaderSpace($event)"
+  >
+    <div class="title-wrap">
+      <span class="icon" aria-hidden="true">{{ icon }}</span>
+      <h3 class="title font-title">{{ title }}</h3>
+    </div>
+  </header>
+
+  <div class="scroll-content" [class.collapsed]="!isExpanded">
+    <ng-content />
+  </div>
+</section>

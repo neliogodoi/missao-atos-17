@@ -1,0 +1,23 @@
+<section class="rules-page">
+  <app-mission-card
+    [title]="'Regras & Dinâmica'"
+    [subtitle]="'Como jogar a Missão: Atos 17'"
+    status="active"
+  >
+    <div body class="rules-body">
+      <ng-container *ngIf="sections$ | async as sections">
+        <app-rule-section *ngFor="let section of sections" [title]="section.title" [icon]="section.icon ?? '📘'">
+          <p *ngFor="let paragraph of section.paragraphs">{{ paragraph }}</p>
+          <app-mission-bullet-list *ngIf="section.bullets.length > 0" [items]="section.bullets" />
+        </app-rule-section>
+      </ng-container>
+
+      <div class="tip-block">
+        <strong>Dica:</strong>
+        <span>Não é sobre ser perfeito; é sobre permanecer.</span>
+      </div>
+
+      <a class="btn btn-primary back-btn" routerLink="/play">Voltar para Missão de Hoje</a>
+    </div>
+  </app-mission-card>
+</section>

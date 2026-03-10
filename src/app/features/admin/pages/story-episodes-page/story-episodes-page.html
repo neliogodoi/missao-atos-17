@@ -1,0 +1,36 @@
+<section class="panel">
+  <h3>Story Episodes</h3>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+    <label>
+      Título
+      <input type="text" formControlName="title" />
+    </label>
+
+    <label>
+      Conteúdo
+      <textarea rows="4" formControlName="content"></textarea>
+    </label>
+
+    <div class="actions">
+      <button type="submit" [disabled]="loading()">{{ editingId() ? 'Salvar edição' : 'Criar episódio' }}</button>
+      <button type="button" (click)="onCancelEdit()" *ngIf="editingId()">Cancelar</button>
+    </div>
+  </form>
+
+  <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <div class="list" *ngIf="episodes$ | async as episodes">
+    <article class="item" *ngFor="let episode of episodes">
+      <div>
+        <strong>{{ episode.title }}</strong>
+        <p>{{ episode.content }}</p>
+      </div>
+
+      <div class="item-actions">
+        <button type="button" (click)="onEdit(episode)">Editar</button>
+        <button type="button" (click)="onDelete(episode.id)">Excluir</button>
+      </div>
+    </article>
+  </div>
+</section>

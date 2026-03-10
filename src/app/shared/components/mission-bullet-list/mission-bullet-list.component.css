@@ -1,0 +1,29 @@
+:host {
+  display: block;
+}
+
+.mission-bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.mission-bullets li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.bullet {
+  color: color-mix(in srgb, var(--gold) 80%, var(--text) 20%);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.text {
+  color: var(--text);
+  line-height: 1.65;
+}

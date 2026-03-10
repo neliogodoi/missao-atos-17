@@ -1,0 +1,68 @@
+:host {
+  display: block;
+}
+
+.scroll-panel {
+  border-radius: 1rem;
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow-panel);
+  background: var(--surface);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.scroll-header {
+  padding: 0.9rem 1rem 0.7rem;
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.18s ease;
+}
+
+.scroll-header:hover {
+  background: var(--surface-soft);
+}
+
+.scroll-header:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.icon {
+  font-size: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.scroll-content {
+  padding: 0.95rem 1rem;
+  line-height: 1.65;
+  color: var(--text);
+  transition: max-height 0.24s ease;
+}
+
+.scroll-content.collapsed {
+  max-height: 220px;
+  overflow: hidden;
+  position: relative;
+}
+
+.scroll-content.collapsed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3.2rem;
+  background: var(--surface-overlay);
+}

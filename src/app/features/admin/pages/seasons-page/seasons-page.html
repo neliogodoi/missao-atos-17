@@ -1,0 +1,77 @@
+<section class="panel">
+  <h3>Atos</h3>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+    <label>
+      Nome
+      <input type="text" formControlName="name" />
+    </label>
+
+    <label>
+      Descrição
+      <textarea rows="2" formControlName="description"></textarea>
+    </label>
+
+    <div class="grid-2">
+      <label>
+        Início
+        <input type="date" formControlName="startsAt" />
+      </label>
+
+      <label>
+        Fim
+        <input type="date" formControlName="endsAt" />
+      </label>
+    </div>
+
+    <label>
+      itemAtualDoAto
+      <input type="text" formControlName="currentItemKey" placeholder="ex: Espada" />
+    </label>
+
+    <label class="checkbox">
+      <input type="checkbox" formControlName="isActive" />
+      Ativa
+    </label>
+
+    <div class="actions">
+      <button type="submit" [disabled]="loading()">{{ editingId() ? 'Salvar edição' : 'Criar Ato' }}</button>
+      <button type="button" (click)="onCancelEdit()" *ngIf="editingId()">Cancelar</button>
+    </div>
+  </form>
+
+  <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <div class="list" *ngIf="seasons$ | async as atos">
+    <article class="item" *ngFor="let season of atos">
+      <div class="item-main">
+        <div class="item-head">
+          <strong>{{ season.name }}</strong>
+          <span class="badge" [class.on]="season.isActive">{{ season.isActive ? 'Ativa' : 'Inativa' }}</span>
+        </div>
+
+        <p class="item-line">
+          <span class="item-label">Descrição</span>
+          <span class="item-value">{{ season.description || '-' }}</span>
+        </p>
+
+        <p class="item-line">
+          <span class="item-label">Período</span>
+          <span class="item-value">{{ season.startsAt }} → {{ season.endsAt }}</span>
+        </p>
+
+        <p class="item-line">
+          <span class="item-label">Item atual</span>
+          <span class="item-value">{{ season.currentItemKey || '-' }}</span>
+        </p>
+      </div>
+
+      <div class="item-actions">
+        <button type="button" (click)="onEdit(season)">Editar</button>
+        <button type="button" (click)="onToggleActive(season)">
+          {{ season.isActive ? 'Desativar' : 'Ativar' }}
+        </button>
+      </div>
+    </article>
+  </div>
+</section>

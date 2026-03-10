@@ -1,0 +1,9 @@
+<section class="toast-host" aria-live="polite" aria-atomic="false">
+  <article
+    class="toast-card"
+    *ngFor="let toast of toasts$ | async; trackBy: trackByToastId"
+    [ngClass]="toast.type"
+  >
+    {{ toast.message }}
+  </article>
+</section>

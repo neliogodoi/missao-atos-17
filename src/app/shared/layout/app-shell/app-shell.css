@@ -1,0 +1,7 @@
+:host {
+  display: block;
+}
+
+.shell-main {
+  padding-bottom: var(--space-6);
+}

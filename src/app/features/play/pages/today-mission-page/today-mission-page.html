@@ -1,0 +1,119 @@
+<section class="today-page">
+  <div *ngIf="loading()" class="skeleton-card" aria-hidden="true">
+    <div class="skeleton skeleton-title"></div>
+    <div class="skeleton skeleton-line"></div>
+    <div class="skeleton skeleton-line"></div>
+    <div class="skeleton skeleton-block"></div>
+  </div>
+
+  <ng-container *ngIf="!loading()">
+    <p class="error-banner" *ngIf="errorMessage()">
+      Algo saiu do roteiro da missão. Tente novamente em instantes.
+      <br />
+      <small>{{ errorMessage() }}</small>
+    </p>
+
+    <p class="empty-state" *ngIf="!mission()">
+      Nenhuma missão foi publicada para hoje. Volte mais tarde.
+    </p>
+
+    <ng-container *ngIf="mission() && episode() && question() as q">
+      <app-mission-card
+        [title]="'Missão do Dia'"
+        [subtitle]="formattedToday"
+        [status]="missionStatus"
+      >
+        <app-xp-tag
+          headerRight
+          [value]="maxMissionXp"
+          label="XP máx"
+        />
+
+        <div body class="mission-body-content">
+          <app-scroll-panel [title]="episode()!.title" icon="📜" [collapsed]="false">
+            <p class="story-content">{{ episode()!.content }}</p>
+          </app-scroll-panel>
+
+          <section class="question-section">
+            <h4 class="question-title">Pergunta</h4>
+            <article class="question-card">
+              <p class="question-text">{{ q.text }}</p>
+
+              <form [formGroup]="form" (ngSubmit)="onSubmit()" class="question-form">
+                <label
+                  class="option-card"
+                  *ngFor="let option of q.options; let i = index"
+                  [class.selected]="form.controls.selectedIndex.value === i"
+                  [class.disabled]="alreadyAnswered() || submitting() || savingComment()"
+                >
+                  <input
+                    type="radio"
+                    [value]="i"
+                    formControlName="selectedIndex"
+                    [disabled]="alreadyAnswered() || submitting() || savingComment()"
+                  />
+                  <span>{{ option }}</span>
+                </label>
+
+                <label class="comment-field">
+                  Comentário sobre o texto (opcional)
+                  <textarea
+                    formControlName="comment"
+                    rows="4"
+                    [disabled]="submitting() || savingComment()"
+                    placeholder="Escreva uma reflexão curta sobre a mensagem de hoje."
+                  ></textarea>
+                  <small class="comment-hint">
+                    Para ganhar +3 XP de comentário, escreva pelo menos {{ minCommentLength }} caracteres.
+                  </small>
+                  <small
+                    class="comment-error"
+                    *ngIf="form.controls.comment.touched && form.controls.comment.errors?.['minLengthIfNotEmpty']"
+                  >
+                    Comentários precisam ter no mínimo {{ minCommentLength }} caracteres.
+                  </small>
+                </label>
+
+                <button
+                  *ngIf="!alreadyAnswered()"
+                  class="btn btn-primary submit-btn"
+                  type="submit"
+                  [disabled]="alreadyAnswered() || submitting() || form.controls.selectedIndex.value === null || form.invalid"
+                >
+                  {{ submitting() ? 'Enviando...' : 'Enviar resposta' }}
+                </button>
+
+                <button
+                  *ngIf="alreadyAnswered()"
+                  class="btn btn-secondary submit-btn"
+                  type="button"
+                  (click)="onSaveComment()"
+                  [disabled]="savingComment() || !canSaveComment"
+                >
+                  {{ savingComment() ? 'Salvando comentário...' : 'Salvar comentário' }}
+                </button>
+              </form>
+            </article>
+          </section>
+
+          <p class="success-message" *ngIf="submittedNow()">✅ Resposta enviada!</p>
+          <p class="success-message" *ngIf="alreadyAnswered() && !submittedNow()">✅ Relatório enviado. Volte amanhã.</p>
+          <p class="answered-meta" *ngIf="alreadyAnswered() && selectedTodayIndex() !== null">
+            Alternativa escolhida: <strong>{{ q.options[selectedTodayIndex() ?? 0] }}</strong>
+          </p>
+          <p class="answered-meta" *ngIf="alreadyAnswered() && dayXp() !== null">
+            XP do dia: <strong>{{ dayXp() }}</strong>
+          </p>
+          <p class="answered-meta" *ngIf="alreadyAnswered() && submittedComment()">
+            Comentário enviado: <strong>{{ submittedComment() }}</strong>
+          </p>
+
+          <a class="btn btn-secondary journey-link" routerLink="/play/journey">Ver minha jornada</a>
+        </div>
+      </app-mission-card>
+
+      <a class="btn btn-ghost rules-link" routerLink="/play/regras">Como funciona o jogo?</a>
+      <a class="btn btn-ghost rules-link" routerLink="/play/narrativa">Ler narrativa contínua</a>
+    </ng-container>
+  </ng-container>
+</section>

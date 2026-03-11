@@ -95,6 +95,16 @@ h4 {
   box-shadow: var(--accent-ring);
 }
 
+.option-card.correct-option {
+  border-color: color-mix(in srgb, var(--success) 70%, white 30%);
+  background: color-mix(in srgb, var(--success) 18%, transparent 82%);
+}
+
+.option-card.wrong-selected-option {
+  border-color: color-mix(in srgb, var(--danger) 75%, white 25%);
+  background: color-mix(in srgb, var(--danger) 18%, transparent 82%);
+}
+
 .option-card.disabled {
   opacity: 0.75;
   cursor: not-allowed;
@@ -126,13 +136,59 @@ h4 {
   justify-content: center;
 }
 
-.success-message {
-  color: var(--success);
-  font-weight: 700;
-}
-
 .answered-meta {
   color: var(--text);
+}
+
+.answer-feedback {
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid var(--stroke);
+  border-radius: 0.8rem;
+  background: var(--surface-soft);
+  padding: 0.85rem;
+}
+
+.answer-feedback.correct {
+  border-color: color-mix(in srgb, var(--success) 65%, var(--stroke) 35%);
+}
+
+.answer-feedback.wrong {
+  border-color: color-mix(in srgb, var(--danger) 65%, var(--stroke) 35%);
+}
+
+.feedback-badge {
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: var(--surface-2);
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.feedback-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.feedback-text {
+  margin: 0;
+  color: var(--muted);
+}
+
+.xp-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 0.75rem;
+  border-top: 1px dashed var(--stroke);
+  border-bottom: 1px dashed var(--stroke);
+  padding: 0.55rem 0;
+}
+
+.xp-breakdown p {
+  margin: 0;
 }
 
 .error-banner {

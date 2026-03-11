@@ -79,6 +79,79 @@ export class TodayMissionPage {
     return this.gameScoringService.maxMissionXp;
   }
 
+  get participationXp(): number {
+    return this.gameScoringService.participationXp;
+  }
+
+  get correctBonusXp(): number {
+    return this.gameScoringService.correctBonusXp;
+  }
+
+  get commentBonusXp(): number {
+    return this.gameScoringService.commentBonusXp;
+  }
+
+  get answerOutcome(): 'correct' | 'wrong' | 'answered' | 'pending' {
+    if (!this.alreadyAnswered()) {
+      return 'pending';
+    }
+
+    const question = this.question();
+    const selectedIndex = this.selectedTodayIndex();
+    if (!question || selectedIndex === null) {
+      return 'answered';
+    }
+
+    if (typeof question.correctIndex !== 'number') {
+      return 'answered';
+    }
+
+    return question.correctIndex === selectedIndex ? 'correct' : 'wrong';
+  }
+
+  get answerOutcomeTitle(): string {
+    switch (this.answerOutcome) {
+      case 'correct':
+        return 'Acertou a resposta';
+      case 'wrong':
+        return 'Resposta incorreta';
+      case 'answered':
+        return 'Resposta registrada';
+      default:
+        return '';
+    }
+  }
+
+  get answerOutcomeMessage(): string {
+    switch (this.answerOutcome) {
+      case 'correct':
+        return 'Boa! Você ganhou o bônus de acerto.';
+      case 'wrong':
+        return 'Sem problemas: você mantém o XP de participação.';
+      case 'answered':
+        return 'Sua participação foi registrada com sucesso.';
+      default:
+        return '';
+    }
+  }
+
+  get earnedCorrectBonusXp(): number {
+    return this.answerOutcome === 'correct' ? this.correctBonusXp : 0;
+  }
+
+  get earnedCommentBonusXp(): number {
+    return this.gameScoringService.hasMeaningfulComment(this.submittedComment()) ? this.commentBonusXp : 0;
+  }
+
+  get correctOptionText(): string | null {
+    const question = this.question();
+    if (!question || typeof question.correctIndex !== 'number') {
+      return null;
+    }
+
+    return question.options[question.correctIndex] ?? null;
+  }
+
   get minCommentLength(): number {
     return MIN_COMMENT_LENGTH;
   }
@@ -175,6 +248,15 @@ export class TodayMissionPage {
     } finally {
       this.savingComment.set(false);
     }
+  }
+
+  isOptionCorrect(index: number): boolean {
+    const question = this.question();
+    return !!question && typeof question.correctIndex === 'number' && question.correctIndex === index;
+  }
+
+  isOptionWrongSelected(index: number): boolean {
+    return this.answerOutcome === 'wrong' && this.selectedTodayIndex() === index;
   }
 
   private loadTodayMission(): void {

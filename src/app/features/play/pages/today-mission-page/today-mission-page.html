@@ -44,6 +44,8 @@
                   class="option-card"
                   *ngFor="let option of q.options; let i = index"
                   [class.selected]="form.controls.selectedIndex.value === i"
+                  [class.correct-option]="alreadyAnswered() && isOptionCorrect(i)"
+                  [class.wrong-selected-option]="alreadyAnswered() && isOptionWrongSelected(i)"
                   [class.disabled]="alreadyAnswered() || submitting() || savingComment()"
                 >
                   <input
@@ -96,17 +98,28 @@
             </article>
           </section>
 
-          <p class="success-message" *ngIf="submittedNow()">✅ Resposta enviada!</p>
-          <p class="success-message" *ngIf="alreadyAnswered() && !submittedNow()">✅ Relatório enviado. Volte amanhã.</p>
-          <p class="answered-meta" *ngIf="alreadyAnswered() && selectedTodayIndex() !== null">
-            Alternativa escolhida: <strong>{{ q.options[selectedTodayIndex() ?? 0] }}</strong>
-          </p>
-          <p class="answered-meta" *ngIf="alreadyAnswered() && dayXp() !== null">
-            XP do dia: <strong>{{ dayXp() }}</strong>
-          </p>
-          <p class="answered-meta" *ngIf="alreadyAnswered() && submittedComment()">
-            Comentário enviado: <strong>{{ submittedComment() }}</strong>
-          </p>
+          <section class="answer-feedback" *ngIf="alreadyAnswered()" [class.correct]="answerOutcome === 'correct'" [class.wrong]="answerOutcome === 'wrong'">
+            <p class="feedback-badge" *ngIf="submittedNow()">Resposta enviada</p>
+            <h5 class="feedback-title">{{ answerOutcomeTitle }}</h5>
+            <p class="feedback-text">{{ answerOutcomeMessage }}</p>
+            <p class="feedback-text" *ngIf="answerOutcome === 'wrong' && correctOptionText">
+              Resposta correta: <strong>{{ correctOptionText }}</strong>
+            </p>
+
+            <div class="xp-breakdown" *ngIf="dayXp() !== null">
+              <p>XP total do dia: <strong>{{ dayXp() }}</strong></p>
+              <p>Participação: <strong>+{{ participationXp }}</strong></p>
+              <p>Acerto: <strong>+{{ earnedCorrectBonusXp }}</strong></p>
+              <p>Comentário relevante: <strong>+{{ earnedCommentBonusXp }}</strong></p>
+            </div>
+
+            <p class="answered-meta" *ngIf="selectedTodayIndex() !== null">
+              Alternativa escolhida: <strong>{{ q.options[selectedTodayIndex() ?? 0] }}</strong>
+            </p>
+            <p class="answered-meta" *ngIf="submittedComment()">
+              Comentário enviado: <strong>{{ submittedComment() }}</strong>
+            </p>
+          </section>
         </div>
       </app-mission-card>
 

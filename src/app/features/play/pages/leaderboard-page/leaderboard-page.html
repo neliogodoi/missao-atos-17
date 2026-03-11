@@ -4,7 +4,7 @@
   <div class="list" *ngIf="topUsers$ | async as users">
     <p class="empty" *ngIf="users.length === 0">Ainda não há participantes no ranking.</p>
     <article class="row" *ngFor="let user of users; let i = index">
-      <strong class="position">{{ i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉' }} #{{ i + 1 }}</strong>
+      <strong class="position">#{{ i + 1 }}</strong>
 
       <img
         class="avatar"

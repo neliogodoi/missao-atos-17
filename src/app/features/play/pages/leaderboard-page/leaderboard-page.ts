@@ -16,12 +16,19 @@ export class LeaderboardPage {
   private readonly firestoreService = inject(FirestoreService);
 
   readonly topUsers$ = this.firestoreService
-    .col$<UserStats>('userStats', (ref) => query(ref, orderBy('totalXp', 'desc'), limit(50)))
+    .col$<UserStats>('userStats', (ref) => query(ref, orderBy('totalXp', 'desc'), limit(500)))
     .pipe(
       map((users) =>
         [...users]
-          .sort((a, b) => (b.totalXp - a.totalXp) || ((b.streak ?? 0) - (a.streak ?? 0)))
-          .slice(0, 3)
+          .sort((a, b) =>
+            (b.totalXp - a.totalXp)
+            || ((b.streak ?? 0) - (a.streak ?? 0))
+            || this.getSortName(a).localeCompare(this.getSortName(b), 'pt-BR')
+          )
       )
     );
+
+  private getSortName(user: UserStats): string {
+    return (user.displayName || user.userId || '').trim().toLowerCase();
+  }
 }

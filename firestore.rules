@@ -72,21 +72,29 @@ service cloud.firestore {
     match /userStats/{uid} {
       allow read: if signedIn();
 
-      allow create, update: if (isOwner(uid) || isAdmin())
-        && request.resource.data.userId == uid
-        && request.resource.data.role is string
-        && isRole(request.resource.data.role)
-        && request.resource.data.displayName is string
-        && request.resource.data.photoURL is string
-        && request.resource.data.totalXp is int
-        && request.resource.data.totalXp >= 0
-        && request.resource.data.streak is int
-        && request.resource.data.streak >= 0
+      allow create, update: if request.resource.data.userId == uid
         && (
-          !('lastAnswerDateKey' in request.resource.data)
-          || isValidDateKey(request.resource.data.lastAnswerDateKey)
-        )
-        && isTimestampOrIsoString(request.resource.data.updatedAt);
+          isAdmin()
+          || (
+            isOwner(uid)
+            && request.resource.data.role is string
+            && isRole(request.resource.data.role)
+            && request.resource.data.displayName is string
+            && request.resource.data.photoURL is string
+            && request.resource.data.totalXp is number
+            && request.resource.data.totalXp >= 0
+            && request.resource.data.streak is number
+            && request.resource.data.streak >= 0
+            && (
+              !('lastAnswerDateKey' in request.resource.data)
+              || isValidDateKey(request.resource.data.lastAnswerDateKey)
+            )
+            && (
+              request.resource.data.updatedAt is timestamp
+              || request.resource.data.updatedAt is string
+            )
+          )
+        );
 
       allow delete: if false;
     }

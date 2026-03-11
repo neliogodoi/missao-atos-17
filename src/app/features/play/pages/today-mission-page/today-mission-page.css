@@ -109,6 +109,11 @@ h4 {
   margin-top: 0.25rem;
 }
 
+.quick-links {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .journey-link {
   width: 100%;
   text-decoration: none;
@@ -200,6 +205,12 @@ h4 {
   .journey-link,
   .rules-link {
     min-height: 2.75rem;
+  }
+}
+
+@media (min-width: 860px) {
+  .quick-links {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

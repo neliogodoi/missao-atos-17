@@ -107,13 +107,14 @@
           <p class="answered-meta" *ngIf="alreadyAnswered() && submittedComment()">
             Comentário enviado: <strong>{{ submittedComment() }}</strong>
           </p>
-
-          <a class="btn btn-secondary journey-link" routerLink="/play/journey">Ver minha jornada</a>
         </div>
       </app-mission-card>
 
-      <a class="btn btn-ghost rules-link" routerLink="/play/regras">Como funciona o jogo?</a>
-      <a class="btn btn-ghost rules-link" routerLink="/play/narrativa">Ler narrativa contínua</a>
+      <div class="quick-links">
+        <a class="btn btn-secondary journey-link" routerLink="/play/journey">Ver minha jornada</a>
+        <a class="btn btn-ghost rules-link" routerLink="/play/regras">Como funciona o jogo?</a>
+        <a class="btn btn-ghost rules-link" routerLink="/play/narrativa">Ler narrativa contínua</a>
+      </div>
     </ng-container>
   </ng-container>
 </section>

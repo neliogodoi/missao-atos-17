@@ -9,6 +9,10 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
+    function isRole(value) {
+      return value in ['admin', 'player'];
+    }
+
     match /dailyMissions/{docId} {
       allow read: if true;
       allow write: if false;
@@ -27,6 +31,39 @@ service cloud.firestore {
     match /gameConfig/rules {
       allow read: if true;
       allow write: if false;
+    }
+
+    match /userStats/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly([
+          'userId',
+          'role',
+          'displayName',
+          'photoURL',
+          'totalXp',
+          'streak',
+          'lastAnswerDateKey',
+          'updatedAt'
+        ])
+        && request.resource.data.userId == uid
+        && request.resource.data.role is string
+        && isRole(request.resource.data.role)
+        && request.resource.data.displayName is string
+        && request.resource.data.photoURL is string
+        && request.resource.data.totalXp is int
+        && request.resource.data.totalXp >= 0
+        && request.resource.data.streak is int
+        && request.resource.data.streak >= 0
+        && (
+          !('lastAnswerDateKey' in request.resource.data)
+          || (
+            request.resource.data.lastAnswerDateKey is string
+            && request.resource.data.lastAnswerDateKey.matches('^\\d{4}-\\d{2}-\\d{2}$')
+          )
+        )
+        && request.resource.data.updatedAt is timestamp;
+      allow delete: if false;
     }
 
     match /users/{uid} {

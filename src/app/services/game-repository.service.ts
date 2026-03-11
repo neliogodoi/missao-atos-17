@@ -20,15 +20,18 @@ import {
   Question,
   Season,
   StoryEpisode,
+  UserRole,
   UserAnswer,
   UserAnswerByDate
 } from '../models/firestore.models';
+import { GameScoringService } from './game-scoring.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameRepository {
   private readonly firestore = inject(Firestore);
+  private readonly gameScoringService = inject(GameScoringService);
   private readonly missionCache = new Map<string, DailyMission>();
   private readonly questionCache = new Map<string, Question>();
   private readonly storyCache = new Map<string, StoryEpisode>();
@@ -208,12 +211,18 @@ export class GameRepository {
     selectedIndex: number,
     comment: string
   ): Promise<void> {
+    const userRef = doc(this.firestore, `users/${uid}`);
+    const userStatsRef = doc(this.firestore, `userStats/${uid}`);
+    const questionRef = doc(this.firestore, `questions/${mission.questionId}`);
     const byMissionRef = doc(this.firestore, `users/${uid}/answers/${mission.id}`);
     const byDateRef = doc(this.firestore, `users/${uid}/answersByDate/${mission.dateKey}`);
     const normalizedComment = comment.trim();
 
     return runTransaction(this.firestore, async (transaction) => {
-      const [byMissionSnap, byDateSnap] = await Promise.all([
+      const [userSnap, userStatsSnap, questionSnap, byMissionSnap, byDateSnap] = await Promise.all([
+        transaction.get(userRef),
+        transaction.get(userStatsRef),
+        transaction.get(questionRef),
         transaction.get(byMissionRef),
         transaction.get(byDateRef)
       ]);
@@ -221,6 +230,30 @@ export class GameRepository {
       if (byMissionSnap.exists() || byDateSnap.exists()) {
         throw new Error('Você já respondeu hoje.');
       }
+      if (!userSnap.exists()) {
+        throw new Error('Usuário não encontrado.');
+      }
+      if (!questionSnap.exists()) {
+        throw new Error('Pergunta da missão não encontrada.');
+      }
+
+      const question = questionSnap.data() as Question;
+      const xpEarned = this.gameScoringService.computeXpForMission(question, selectedIndex, normalizedComment);
+      const previousStats = userStatsSnap.exists()
+        ? this.parseUserStats(userStatsSnap.data() as Record<string, unknown>)
+        : null;
+      const previousTotalXp = previousStats?.totalXp ?? 0;
+      const previousStreak = previousStats?.streak ?? 0;
+      const previousLastAnswerDateKey = previousStats?.lastAnswerDateKey ?? '';
+      const role = this.parseUserRole((userSnap.data() as Record<string, unknown>)['role']);
+      const displayName = this.parseString((userSnap.data() as Record<string, unknown>)['displayName']);
+      const photoURL = this.parseString((userSnap.data() as Record<string, unknown>)['photoURL']);
+
+      const streak =
+        previousLastAnswerDateKey &&
+        this.gameScoringService.getYesterdayDateKey(mission.dateKey) === previousLastAnswerDateKey
+          ? previousStreak + 1
+          : 1;
 
       const byMissionPayload: {
         missionId: string;
@@ -254,6 +287,20 @@ export class GameRepository {
 
       transaction.set(byMissionRef, byMissionPayload);
       transaction.set(byDateRef, byDatePayload);
+      transaction.set(
+        userStatsRef,
+        {
+          userId: uid,
+          role,
+          displayName,
+          photoURL,
+          totalXp: previousTotalXp + xpEarned,
+          streak,
+          lastAnswerDateKey: mission.dateKey,
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
     });
   }
 
@@ -263,12 +310,16 @@ export class GameRepository {
     dateKey: string,
     comment: string
   ): Promise<void> {
+    const userRef = doc(this.firestore, `users/${uid}`);
+    const userStatsRef = doc(this.firestore, `userStats/${uid}`);
     const byMissionRef = doc(this.firestore, `users/${uid}/answers/${missionId}`);
     const byDateRef = doc(this.firestore, `users/${uid}/answersByDate/${dateKey}`);
     const normalizedComment = comment.trim();
 
     return runTransaction(this.firestore, async (transaction) => {
-      const [byMissionSnap, byDateSnap] = await Promise.all([
+      const [userSnap, userStatsSnap, byMissionSnap, byDateSnap] = await Promise.all([
+        transaction.get(userRef),
+        transaction.get(userStatsRef),
         transaction.get(byMissionRef),
         transaction.get(byDateRef)
       ]);
@@ -276,6 +327,41 @@ export class GameRepository {
       if (!byMissionSnap.exists() || !byDateSnap.exists()) {
         throw new Error('Resposta do dia não encontrada para atualizar comentário.');
       }
+      if (!userSnap.exists()) {
+        throw new Error('Usuário não encontrado.');
+      }
+
+      const byMissionData = byMissionSnap.data() as Record<string, unknown>;
+      const currentSelectedIndex = Number(byMissionData['selectedIndex']);
+      const currentDateKey = this.parseString(byMissionData['dateKey']);
+      const currentMissionId = this.parseString(byMissionData['missionId']);
+      const previousComment = this.parseString(byMissionData['comment']);
+      if (!Number.isInteger(currentSelectedIndex)) {
+        throw new Error('Resposta inválida para atualizar comentário.');
+      }
+      const missionRef = doc(this.firestore, `dailyMissions/${currentMissionId}`);
+      const missionSnap = await transaction.get(missionRef);
+      if (!missionSnap.exists()) {
+        throw new Error('Missão não encontrada para atualizar comentário.');
+      }
+      const missionData = missionSnap.data() as DailyMission;
+      const questionRef = doc(this.firestore, `questions/${missionData.questionId}`);
+      const questionSnap = await transaction.get(questionRef);
+      if (!questionSnap.exists()) {
+        throw new Error('Pergunta não encontrada para atualizar comentário.');
+      }
+      const question = questionSnap.data() as Question;
+      const previousXp = this.gameScoringService.computeXpForMission(question, currentSelectedIndex, previousComment);
+      const nextXp = this.gameScoringService.computeXpForMission(question, currentSelectedIndex, normalizedComment);
+      const xpDelta = nextXp - previousXp;
+
+      const previousStats = userStatsSnap.exists()
+        ? this.parseUserStats(userStatsSnap.data() as Record<string, unknown>)
+        : null;
+      const currentTotalXp = previousStats?.totalXp ?? 0;
+      const role = this.parseUserRole((userSnap.data() as Record<string, unknown>)['role']);
+      const displayName = this.parseString((userSnap.data() as Record<string, unknown>)['displayName']);
+      const photoURL = this.parseString((userSnap.data() as Record<string, unknown>)['photoURL']);
 
       if (normalizedComment.length > 0) {
         transaction.update(byMissionRef, { comment: normalizedComment });
@@ -284,7 +370,41 @@ export class GameRepository {
         transaction.update(byMissionRef, { comment: deleteField() });
         transaction.update(byDateRef, { comment: deleteField() });
       }
+
+      if (xpDelta !== 0 || !userStatsSnap.exists()) {
+        transaction.set(
+          userStatsRef,
+          {
+            userId: uid,
+            role,
+            displayName,
+            photoURL,
+            totalXp: Math.max(0, currentTotalXp + xpDelta),
+            streak: previousStats?.streak ?? 0,
+            lastAnswerDateKey: previousStats?.lastAnswerDateKey ?? currentDateKey,
+            updatedAt: serverTimestamp()
+          },
+          { merge: true }
+        );
+      }
     });
+  }
+
+  private parseString(value: unknown): string {
+    return typeof value === 'string' ? value : '';
+  }
+
+  private parseUserRole(value: unknown): UserRole {
+    return value === 'admin' ? 'admin' : 'player';
+  }
+
+  private parseUserStats(
+    value: Record<string, unknown>
+  ): { totalXp: number; streak: number; lastAnswerDateKey: string } {
+    const totalXp = typeof value['totalXp'] === 'number' ? Math.max(0, value['totalXp']) : 0;
+    const streak = typeof value['streak'] === 'number' ? Math.max(0, value['streak']) : 0;
+    const lastAnswerDateKey = this.parseString(value['lastAnswerDateKey']);
+    return { totalXp, streak, lastAnswerDateKey };
   }
 
   listUserAnswersInRange(uid: string, startDateKey: string, endDateKey: string): Observable<UserAnswer[]> {

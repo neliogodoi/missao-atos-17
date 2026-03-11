@@ -25,7 +25,7 @@ export class AuthService {
   async loginWithGoogle(): Promise<UserCredential> {
     try {
       const credential = await signInWithPopup(this.auth, this.googleProvider);
-      await this.ensureUserDoc(credential.user);
+      await this.ensureUserDocAndStats(credential.user);
       return credential;
     } catch (error: unknown) {
       throw this.mapGoogleLoginError(error);
@@ -36,15 +36,33 @@ export class AuthService {
     return signOut(this.auth);
   }
 
-  private async ensureUserDoc(user: User): Promise<void> {
+  private async ensureUserDocAndStats(user: User): Promise<void> {
     const userRef = doc(this.firestore, `users/${user.uid}`);
+    const userStatsRef = doc(this.firestore, `userStats/${user.uid}`);
     const userSnapshot = await getDoc(userRef);
+    const userStatsSnapshot = await getDoc(userStatsRef);
+
+    const displayName = user.displayName ?? '';
+    const photoURL = user.photoURL ?? '';
+    const role = 'player' as const;
 
     if (!userSnapshot.exists()) {
       await setDoc(userRef, {
-        displayName: user.displayName ?? '',
-        photoURL: user.photoURL ?? '',
-        role: 'player' as const
+        displayName,
+        photoURL,
+        role
+      });
+    }
+
+    if (!userStatsSnapshot.exists()) {
+      await setDoc(userStatsRef, {
+        userId: user.uid,
+        role,
+        displayName,
+        photoURL,
+        totalXp: 0,
+        streak: 0,
+        updatedAt: new Date().toISOString()
       });
     }
   }

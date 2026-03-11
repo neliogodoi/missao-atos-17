@@ -15,6 +15,6 @@ export class LeaderboardPage {
   private readonly firestoreService = inject(FirestoreService);
 
   readonly topUsers$ = this.firestoreService.col$<UserStats>('userStats', (ref) =>
-    query(ref, orderBy('totalXp', 'desc'), limit(20))
+    query(ref, orderBy('totalXp', 'desc'), orderBy('streak', 'desc'), limit(20))
   );
 }

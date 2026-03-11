@@ -19,6 +19,10 @@ export const PLAY_ROUTES: Routes = [
         loadComponent: () => import('./pages/journey-page/journey-page').then((m) => m.JourneyPage)
       },
       {
+        path: 'ranking',
+        loadComponent: () => import('./pages/leaderboard-page/leaderboard-page').then((m) => m.LeaderboardPage)
+      },
+      {
         path: 'regras',
         loadComponent: () => import('./pages/rules-page/rules-page').then((m) => m.RulesPage)
       },

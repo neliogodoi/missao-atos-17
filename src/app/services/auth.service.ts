@@ -8,7 +8,7 @@ import {
   signInWithPopup,
   signOut
 } from '@angular/fire/auth';
-import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
+import { Firestore, doc, getDoc, serverTimestamp, setDoc } from '@angular/fire/firestore';
 import { FirebaseError } from 'firebase/app';
 import { Observable } from 'rxjs';
 
@@ -44,7 +44,8 @@ export class AuthService {
 
     const displayName = user.displayName ?? '';
     const photoURL = user.photoURL ?? '';
-    const role = 'player' as const;
+    const existingRole = userSnapshot.exists() ? userSnapshot.data()?.['role'] : null;
+    const role = existingRole === 'admin' ? 'admin' : 'player';
 
     if (!userSnapshot.exists()) {
       await setDoc(userRef, {
@@ -62,7 +63,7 @@ export class AuthService {
         photoURL,
         totalXp: 0,
         streak: 0,
-        updatedAt: new Date().toISOString()
+        updatedAt: serverTimestamp()
       });
     }
   }

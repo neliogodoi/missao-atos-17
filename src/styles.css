@@ -28,7 +28,7 @@
 	--accent-soft-border: color-mix(in srgb, var(--blue) 72%, var(--text) 28%);
 	--accent-ring: 0 0 0 1px rgba(0, 168, 132, 0.35), 0 0 14px rgba(0, 168, 132, 0.24);
 
-	--gold: rgb(3, 111, 64);
+	--gold: rgb(0, 153, 87);
 	--amethyst: #111b21;
 	--success: #25d366;
 	--danger: #ff6b6b;

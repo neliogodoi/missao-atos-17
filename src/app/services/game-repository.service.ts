@@ -6,11 +6,14 @@ import {
   deleteField,
   doc,
   docData,
+  getDoc,
+  getDocs,
   limit,
   orderBy,
   query,
   runTransaction,
   serverTimestamp,
+  setDoc as setFirestoreDoc,
   where
 } from '@angular/fire/firestore';
 import { Observable, map, of, shareReplay, switchMap, take, tap, throwError } from 'rxjs';
@@ -456,5 +459,117 @@ export class GameRepository {
     );
 
     return collectionData(q) as Observable<DailyMission[]>;
+  }
+
+  async rebuildRankingForAllUsers(): Promise<{ processedUsers: number }> {
+    const usersRef = collection(this.firestore, 'users');
+    const usersSnap = await getDocs(usersRef);
+
+    let processedUsers = 0;
+
+    for (const userDoc of usersSnap.docs) {
+      const uid = userDoc.id;
+      const userData = userDoc.data() as Record<string, unknown>;
+      const role = this.parseUserRole(userData['role']);
+      const displayName = this.parseString(userData['displayName']);
+      const photoURL = this.parseString(userData['photoURL']);
+
+      const answersRef = collection(this.firestore, `users/${uid}/answersByDate`);
+      const answersSnap = await getDocs(query(answersRef, orderBy('dateKey', 'asc')));
+
+      let totalXp = 0;
+      let streak = 0;
+      let previousDateKey = '';
+      let lastAnswerDateKey = '';
+
+      for (const answerDoc of answersSnap.docs) {
+        const answerData = answerDoc.data() as Record<string, unknown>;
+        const missionId = this.parseString(answerData['missionId']);
+        const dateKey = this.parseString(answerData['dateKey']);
+        const selectedIndex = Number(answerData['selectedIndex']);
+        const comment = this.parseString(answerData['comment']);
+
+        if (!missionId || !dateKey || !Number.isInteger(selectedIndex)) {
+          continue;
+        }
+
+        const mission = await this.getMissionFromStore(missionId);
+        if (!mission) {
+          continue;
+        }
+        const question = await this.getQuestionFromStore(mission.questionId);
+        if (!question) {
+          continue;
+        }
+
+        totalXp += this.gameScoringService.computeXpForMission(question, selectedIndex, comment);
+
+        if (previousDateKey && this.gameScoringService.getYesterdayDateKey(dateKey) === previousDateKey) {
+          streak += 1;
+        } else {
+          streak = 1;
+        }
+
+        previousDateKey = dateKey;
+        lastAnswerDateKey = dateKey;
+      }
+
+      const userStatsRef = doc(this.firestore, `userStats/${uid}`);
+      await setFirestoreDoc(
+        userStatsRef,
+        {
+          userId: uid,
+          role,
+          displayName,
+          photoURL,
+          totalXp,
+          streak,
+          ...(lastAnswerDateKey ? { lastAnswerDateKey } : {}),
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
+
+      processedUsers += 1;
+    }
+
+    return { processedUsers };
+  }
+
+  private async getMissionFromStore(missionId: string): Promise<DailyMission | null> {
+    const cached = this.missionCache.get(missionId);
+    if (cached) {
+      return cached;
+    }
+
+    const ref = doc(this.firestore, `dailyMissions/${missionId}`);
+    const snapshot = await getDoc(ref);
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    const mission = snapshot.data() as DailyMission;
+    this.missionCache.set(missionId, mission);
+    if (mission.dateKey) {
+      this.missionDateCache.set(mission.dateKey, missionId);
+    }
+    return mission;
+  }
+
+  private async getQuestionFromStore(questionId: string): Promise<Question | null> {
+    const cached = this.questionCache.get(questionId);
+    if (cached) {
+      return cached;
+    }
+
+    const ref = doc(this.firestore, `questions/${questionId}`);
+    const snapshot = await getDoc(ref);
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    const question = snapshot.data() as Question;
+    this.questionCache.set(questionId, question);
+    return question;
   }
 }

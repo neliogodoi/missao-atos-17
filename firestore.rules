@@ -13,29 +13,66 @@ service cloud.firestore {
       return value in ['admin', 'player'];
     }
 
+    function currentUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && currentUserDoc().exists()
+        && currentUserDoc().data.role == 'admin';
+    }
+
+    function isValidDateKey(value) {
+      return value is string && value.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    function isTimestampOrIsoString(value) {
+      return value is timestamp
+        || (value is string && value.matches('^\\d{4}-\\d{2}-\\d{2}T.*$'));
+    }
+
+    function validCommentOrMissing(data) {
+      return !('comment' in data)
+        || (data.comment is string && data.comment.size() >= 50);
+    }
+
+    // =====================
+    // Public read game data
+    // =====================
     match /dailyMissions/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /questions/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /storyEpisodes/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /gameConfig/rules {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
+    // Ato (seasons) - necessário para Jornada
+    match /seasons/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // =====================
+    // Ranking
+    // =====================
     match /userStats/{uid} {
       allow read: if signedIn();
-      allow create, update: if isOwner(uid)
+
+      allow create, update: if (isOwner(uid) || isAdmin())
         && request.resource.data.keys().hasOnly([
           'userId',
           'role',
@@ -57,84 +94,77 @@ service cloud.firestore {
         && request.resource.data.streak >= 0
         && (
           !('lastAnswerDateKey' in request.resource.data)
-          || (
-            request.resource.data.lastAnswerDateKey is string
-            && request.resource.data.lastAnswerDateKey.matches('^\\d{4}-\\d{2}-\\d{2}$')
-          )
+          || isValidDateKey(request.resource.data.lastAnswerDateKey)
         )
-        && request.resource.data.updatedAt is timestamp;
+        && isTimestampOrIsoString(request.resource.data.updatedAt);
+
       allow delete: if false;
     }
 
+    // =====================
+    // Users + respostas
+    // =====================
     match /users/{uid} {
-      allow read, create: if isOwner(uid);
-      allow update: if isOwner(uid)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL'])
-        && request.resource.data.keys().hasOnly(resource.data.keys());
+      allow read: if isOwner(uid) || isAdmin();
+
+      // Criação inicial do próprio perfil
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['displayName', 'photoURL', 'role'])
+        && request.resource.data.displayName is string
+        && request.resource.data.photoURL is string
+        && request.resource.data.role == 'player';
+
+      // Dono só edita perfil básico; admin pode editar tudo
+      allow update: if (isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL'])
+          && request.resource.data.keys().hasOnly(resource.data.keys()))
+        || isAdmin();
+
       allow delete: if false;
 
       match /answers/{missionId} {
-        allow read: if isOwner(uid);
+        allow read: if isOwner(uid) || isAdmin();
+
         allow create: if isOwner(uid)
           && request.resource.data.keys().hasOnly(['missionId', 'dateKey', 'selectedIndex', 'comment', 'createdAt'])
           && request.resource.data.missionId == missionId
-          && request.resource.data.dateKey is string
-          && request.resource.data.dateKey.matches('^\\d{4}-\\d{2}-\\d{2}$')
+          && isValidDateKey(request.resource.data.dateKey)
           && request.resource.data.selectedIndex is int
           && request.resource.data.selectedIndex >= 0
           && request.resource.data.selectedIndex <= 3
-          && (
-            !('comment' in request.resource.data)
-            || (
-              request.resource.data.comment is string
-              && request.resource.data.comment.size() >= 50
-            )
-          )
+          && validCommentOrMissing(request.resource.data)
           && request.resource.data.createdAt is timestamp;
+
         allow update: if isOwner(uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['comment'])
-          && (
-            !('comment' in request.resource.data)
-            || (
-              request.resource.data.comment is string
-              && request.resource.data.comment.size() >= 50
-            )
-          );
+          && validCommentOrMissing(request.resource.data);
+
         allow delete: if false;
       }
 
       match /answersByDate/{dateKey} {
-        allow read: if isOwner(uid);
+        allow read: if isOwner(uid) || isAdmin();
+
         allow create: if isOwner(uid)
           && request.resource.data.keys().hasOnly(['dateKey', 'missionId', 'selectedIndex', 'comment', 'createdAt'])
           && request.resource.data.dateKey == dateKey
-          && request.resource.data.dateKey is string
-          && request.resource.data.dateKey.matches('^\\d{4}-\\d{2}-\\d{2}$')
+          && isValidDateKey(request.resource.data.dateKey)
           && request.resource.data.missionId is string
           && request.resource.data.selectedIndex is int
           && request.resource.data.selectedIndex >= 0
           && request.resource.data.selectedIndex <= 3
-          && (
-            !('comment' in request.resource.data)
-            || (
-              request.resource.data.comment is string
-              && request.resource.data.comment.size() >= 50
-            )
-          )
+          && validCommentOrMissing(request.resource.data)
           && request.resource.data.createdAt is timestamp;
+
         allow update: if isOwner(uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['comment'])
-          && (
-            !('comment' in request.resource.data)
-            || (
-              request.resource.data.comment is string
-              && request.resource.data.comment.size() >= 50
-            )
-          );
+          && validCommentOrMissing(request.resource.data);
+
         allow delete: if false;
       }
     }
 
+    // Bloqueio global
     match /answers/{docId} {
       allow read, write: if false;
     }

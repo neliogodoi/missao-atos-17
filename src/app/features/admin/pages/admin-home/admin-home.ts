@@ -1,10 +1,13 @@
-import { Component } from '@angular/core';
+import { NgIf } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { GameRepository } from '../../../../services/game-repository.service';
+import { ToastService } from '../../../../services/toast.service';
 
 @Component({
   selector: 'app-admin-home',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, MatIconModule],
+  imports: [NgIf, RouterLink, RouterLinkActive, RouterOutlet, MatIconModule],
   template: `
     <section class="admin-shell app-container">
       <header class="admin-nav">
@@ -29,6 +32,13 @@ import { MatIconModule } from '@angular/material/icon';
         </nav>
       </header>
 
+      <section class="admin-actions">
+        <button type="button" class="btn btn-secondary" (click)="onRebuildRanking()" [disabled]="rebuildingRanking()">
+          {{ rebuildingRanking() ? 'Reprocessando ranking...' : 'Reprocessar ranking' }}
+        </button>
+        <small *ngIf="rebuildInfo()">{{ rebuildInfo() }}</small>
+      </section>
+
       <router-outlet />
     </section>
   `,
@@ -45,6 +55,20 @@ import { MatIconModule } from '@angular/material/icon';
       border-radius: 0.9rem;
       background: var(--panel);
       padding: 0.7rem;
+    }
+
+    .admin-actions {
+      border: 1px solid var(--stroke);
+      border-radius: 0.9rem;
+      background: var(--panel);
+      padding: 0.85rem;
+      display: grid;
+      gap: 0.45rem;
+      justify-items: start;
+    }
+
+    .admin-actions small {
+      color: var(--muted);
     }
 
     nav {
@@ -82,4 +106,32 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `
 })
-export class AdminHome {}
+export class AdminHome {
+  private readonly gameRepository = inject(GameRepository);
+  private readonly toastService = inject(ToastService);
+
+  readonly rebuildingRanking = signal(false);
+  readonly rebuildInfo = signal<string | null>(null);
+
+  async onRebuildRanking(): Promise<void> {
+    if (this.rebuildingRanking()) {
+      return;
+    }
+
+    this.rebuildingRanking.set(true);
+    this.rebuildInfo.set(null);
+
+    try {
+      const result = await this.gameRepository.rebuildRankingForAllUsers();
+      const message = `Ranking reprocessado para ${result.processedUsers} usuário(s).`;
+      this.rebuildInfo.set(message);
+      this.toastService.show(message, 'success');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Falha ao reprocessar ranking.';
+      this.rebuildInfo.set(message);
+      this.toastService.show(message, 'error');
+    } finally {
+      this.rebuildingRanking.set(false);
+    }
+  }
+}

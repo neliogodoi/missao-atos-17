@@ -61,4 +61,8 @@ export class App {
   onProfileImageError(): void {
     this.profileImageFailed.set(true);
   }
+
+  async onLogout(): Promise<void> {
+    await this.authService.logout();
+  }
 }

@@ -21,7 +21,7 @@ export class LeaderboardPage {
       map((users) =>
         [...users]
           .sort((a, b) => (b.totalXp - a.totalXp) || ((b.streak ?? 0) - (a.streak ?? 0)))
-          .slice(0, 20)
+          .slice(0, 3)
       )
     );
 }

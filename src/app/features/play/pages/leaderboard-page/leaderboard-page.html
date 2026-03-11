@@ -2,11 +2,25 @@
   <h3>Ranking</h3>
 
   <div class="list" *ngIf="topUsers$ | async as users">
+    <p class="empty" *ngIf="users.length === 0">Ainda não há participantes no ranking.</p>
     <article class="row" *ngFor="let user of users; let i = index">
-      <strong>#{{ i + 1 }}</strong>
-      <span>{{ user.displayName || user.userId }}</span>
-      <span>{{ user.totalXp }} XP</span>
-      <span>Sequência: {{ user.streak || 0 }}</span>
+      <strong class="position">{{ i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉' }} #{{ i + 1 }}</strong>
+
+      <img
+        class="avatar"
+        *ngIf="user.photoURL; else fallbackAvatar"
+        [src]="user.photoURL"
+        [alt]="'Foto de ' + (user.displayName || 'jogador')"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+      />
+      <ng-template #fallbackAvatar>
+        <span class="avatar avatar-fallback">{{ (user.displayName || user.userId).charAt(0) }}</span>
+      </ng-template>
+
+      <span class="name">{{ user.displayName || user.userId }}</span>
+      <span class="xp">{{ user.totalXp }} XP</span>
+      <span class="streak">Sequência: {{ user.streak || 0 }}</span>
     </article>
   </div>
 </section>

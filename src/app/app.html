@@ -9,20 +9,29 @@
       aria-label="Login"
       title="Login"
     ><mat-icon class="material-icons-outlined">login</mat-icon></a>
-    <a routerLink="/admin" routerLinkActive="active" aria-label="Admin" title="Admin">
-      <mat-icon class="material-icons-outlined">admin_panel_settings</mat-icon>
-    </a>
     <a routerLink="/play" routerLinkActive="active" aria-label="Play" title="Play">
       <mat-icon class="material-icons-outlined">sports_esports</mat-icon>
     </a>
     <a routerLink="/play/narrativa" routerLinkActive="active" aria-label="Narrativa" title="Narrativa">
       <mat-icon class="material-icons-outlined">auto_stories</mat-icon>
     </a>
+    <a routerLink="/play/journey" routerLinkActive="active" aria-label="Forja" title="Forja">
+      <mat-icon class="material-icons-outlined">shield</mat-icon>
+    </a>
     <a routerLink="/play/regras" routerLinkActive="active" aria-label="Regras" title="Regras">
       <mat-icon class="material-icons-outlined">help</mat-icon>
     </a>
 
     <ng-container *ngIf="profile$ | async as profile">
+      <a
+        *ngIf="profile.role === 'admin'"
+        routerLink="/admin"
+        routerLinkActive="active"
+        aria-label="Admin"
+        title="Admin"
+      >
+        <mat-icon class="material-icons-outlined">admin_panel_settings</mat-icon>
+      </a>
       <div class="profile-chip" title="Usuário logado">
         <img
           *ngIf="profile.photoURL && !profileImageFailed(); else fallbackAvatar"

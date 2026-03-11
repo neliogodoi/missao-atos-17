@@ -11,6 +11,7 @@ import { ToastHostComponent } from './shared/components/toast-host/toast-host.co
 interface ProfileVm {
   displayName: string;
   photoURL: string;
+  role: 'admin' | 'player';
 }
 
 @Component({
@@ -37,15 +38,19 @@ export class App {
         user.providerData[0]?.photoURL ??
         '';
 
-      return this.firestoreService.doc$<{ displayName?: string; photoURL?: string }>(`users/${user.uid}`).pipe(
+      return this.firestoreService
+        .doc$<{ displayName?: string; photoURL?: string; role?: 'admin' | 'player' }>(`users/${user.uid}`)
+        .pipe(
         map((userDoc) => ({
           displayName: userDoc?.displayName || user.displayName || 'Usuário',
-          photoURL: userDoc?.photoURL || user.photoURL || providerPhoto || ''
+          photoURL: userDoc?.photoURL || user.photoURL || providerPhoto || '',
+          role: userDoc?.role === 'admin' ? 'admin' : 'player'
         })),
         catchError(() =>
           of({
             displayName: user.displayName || 'Usuário',
-            photoURL: user.photoURL || providerPhoto || ''
+            photoURL: user.photoURL || providerPhoto || '',
+            role: 'player' as const
           })
         ),
         tap(() => this.profileImageFailed.set(false))

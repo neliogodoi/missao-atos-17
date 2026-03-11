@@ -6,7 +6,7 @@
 	--stroke: #222d34;
 	--text: #e9edef;
 	--muted: #8696a0;
-	--text-on-accent: #0b141a;
+	--text-on-accent: #d7d7d7;
 	--text-on-danger: #ffd8d8;
 	--text-on-success: #c7ffe0;
 	--text-on-neutral: #d3dde2;
@@ -28,7 +28,8 @@
 	--accent-soft-border: color-mix(in srgb, var(--blue) 72%, var(--text) 28%);
 	--accent-ring: 0 0 0 1px rgba(0, 168, 132, 0.35), 0 0 14px rgba(0, 168, 132, 0.24);
 
-	--gold: rgb(0, 153, 87);
+	--gold: rgb(3, 111, 64);
+	--blue: #25d366;
 	--amethyst: #111b21;
 	--success: #25d366;
 	--danger: #ff6b6b;

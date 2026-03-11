@@ -8,7 +8,7 @@ import {
   signInWithPopup,
   signOut
 } from '@angular/fire/auth';
-import { Firestore, doc, getDoc, serverTimestamp, setDoc } from '@angular/fire/firestore';
+import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { FirebaseError } from 'firebase/app';
 import { Observable } from 'rxjs';
 
@@ -25,7 +25,7 @@ export class AuthService {
   async loginWithGoogle(): Promise<UserCredential> {
     try {
       const credential = await signInWithPopup(this.auth, this.googleProvider);
-      await this.ensureUserDocAndStats(credential.user);
+      await this.ensureUserDoc(credential.user);
       return credential;
     } catch (error: unknown) {
       throw this.mapGoogleLoginError(error);
@@ -36,34 +36,19 @@ export class AuthService {
     return signOut(this.auth);
   }
 
-  private async ensureUserDocAndStats(user: User): Promise<void> {
+  private async ensureUserDoc(user: User): Promise<void> {
     const userRef = doc(this.firestore, `users/${user.uid}`);
-    const userStatsRef = doc(this.firestore, `userStats/${user.uid}`);
     const userSnapshot = await getDoc(userRef);
-    const userStatsSnapshot = await getDoc(userStatsRef);
 
     const displayName = user.displayName ?? '';
     const photoURL = user.photoURL ?? '';
-    const existingRole = userSnapshot.exists() ? userSnapshot.data()?.['role'] : null;
-    const role = existingRole === 'admin' ? 'admin' : 'player';
+    const role = 'player' as const;
 
     if (!userSnapshot.exists()) {
       await setDoc(userRef, {
         displayName,
         photoURL,
         role
-      });
-    }
-
-    if (!userStatsSnapshot.exists()) {
-      await setDoc(userStatsRef, {
-        userId: user.uid,
-        role,
-        displayName,
-        photoURL,
-        totalXp: 0,
-        streak: 0,
-        updatedAt: serverTimestamp()
       });
     }
   }

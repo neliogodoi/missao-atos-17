@@ -3,9 +3,9 @@ import {
   Auth,
   GoogleAuthProvider,
   User,
-  UserCredential,
   authState,
   signInWithPopup,
+  signInWithRedirect,
   signOut
 } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
@@ -22,18 +22,26 @@ export class AuthService {
 
   readonly user$: Observable<User | null> = authState(this.auth);
 
-  async loginWithGoogle(): Promise<UserCredential> {
+  async loginWithGoogle(): Promise<void> {
     try {
       const credential = await signInWithPopup(this.auth, this.googleProvider);
       await this.ensureUserDoc(credential.user);
-      return credential;
     } catch (error: unknown) {
+      if (this.shouldUseRedirectFallback(error)) {
+        await signInWithRedirect(this.auth, this.googleProvider);
+        return;
+      }
+
       throw this.mapGoogleLoginError(error);
     }
   }
 
   logout(): Promise<void> {
     return signOut(this.auth);
+  }
+
+  ensureUserProfile(user: User): Promise<void> {
+    return this.ensureUserDoc(user);
   }
 
   private async ensureUserDoc(user: User): Promise<void> {
@@ -70,5 +78,10 @@ export class AuthService {
       default:
         return new Error('Não foi possível entrar com Google. Tente novamente.');
     }
+  }
+
+  private shouldUseRedirectFallback(error: unknown): boolean {
+    return error instanceof FirebaseError
+      && (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment');
   }
 }

@@ -5,10 +5,11 @@ import { map } from 'rxjs/operators';
 
 import { UserStats } from '../../../../models/firestore.models';
 import { FirestoreService } from '../../../../services/firestore.service';
+import { XpTagComponent } from '../../../../shared/components/xp-tag/xp-tag.component';
 
 @Component({
   selector: 'app-leaderboard-page',
-  imports: [AsyncPipe, NgFor, NgIf],
+  imports: [AsyncPipe, NgFor, NgIf, XpTagComponent],
   templateUrl: './leaderboard-page.html',
   styleUrl: './leaderboard-page.css'
 })

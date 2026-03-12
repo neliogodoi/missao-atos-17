@@ -3,9 +3,7 @@
 
   <div class="list" *ngIf="topUsers$ | async as users">
     <p class="empty" *ngIf="users.length === 0">Ainda não há participantes no ranking.</p>
-    <article class="row" *ngFor="let user of users; let i = index">
-      <strong class="position">#{{ i + 1 }}</strong>
-
+    <article class="row" *ngFor="let user of users">
       <img
         class="avatar"
         *ngIf="user.photoURL; else fallbackAvatar"
@@ -19,8 +17,11 @@
       </ng-template>
 
       <span class="name">{{ user.displayName || user.userId }}</span>
-      <span class="xp">{{ user.totalXp }} XP</span>
-      <span class="streak">Sequência: {{ user.streak || 0 }}</span>
+
+      <div class="tags">
+        <app-xp-tag [value]="user.totalXp" label="XP" [showPlus]="false" variant="gold" />
+        <app-xp-tag [value]="user.streak || 0" label="dias 🔥" [showPlus]="false" variant="streak" />
+      </div>
     </article>
   </div>
 </section>

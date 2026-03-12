@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
-import { environment } from '../../environments/environment';
 import {
   CollectionReference,
   DocumentData,
@@ -12,6 +11,7 @@ import {
   deleteDoc as deleteFirestoreDoc,
   doc,
   docData,
+  getDoc,
   getDocFromServer,
   setDoc as setFirestoreDoc,
   updateDoc as updateFirestoreDoc
@@ -86,24 +86,23 @@ export class FirestoreService {
 
     const rolePath = `users/${user.uid}`;
     const userRef = doc(this.firestore, rolePath);
-    const snapshot = await getDocFromServer(userRef);
-    const role = snapshot?.data()?.['role'];
+    const [serverSnap, fallbackSnap] = await Promise.allSettled([getDocFromServer(userRef), getDoc(userRef)]);
 
-    if (role !== 'admin') {
-      throw new Error(
-        `Permissão de admin ausente. UID corrente: ${user.uid} | path de role: ${rolePath} | role atual: ${this.formatRole(role)}`
-      );
+    const snapshot = serverSnap.status === 'fulfilled'
+      ? serverSnap.value
+      : (fallbackSnap.status === 'fulfilled' ? fallbackSnap.value : null);
+    const role = snapshot?.data()?.['role'];
+    const normalizedRole = typeof role === 'string' ? role.trim().toLowerCase() : '';
+
+    if (normalizedRole !== 'admin') {
+      throw new Error(`Permissão de admin ausente para UID ${user.uid}. role atual: ${String(role ?? 'undefined')}.`);
     }
   }
 
   private mapFirestoreError(error: unknown): Error {
     if (error instanceof FirebaseError && error.code === 'permission-denied') {
       const uid = this.auth.currentUser?.uid ?? 'desconhecido';
-      const rolePath = `users/${uid}`;
-      const projectId = environment.firebase.projectId;
-      return new Error(
-        `Permissão negada no Firestore. UID corrente: ${uid} | path de role: ${rolePath} | projectId: ${projectId}`
-      );
+      return new Error(`Permissão negada no Firestore para UID ${uid}. Verifique role=admin em users/${uid}.`);
     }
 
     if (error instanceof Error) {
@@ -111,12 +110,5 @@ export class FirestoreService {
     }
 
     return new Error('Erro inesperado no Firestore.');
-  }
-
-  private formatRole(role: unknown): string {
-    if (typeof role === 'string') {
-      return `${JSON.stringify(role)} (len=${role.length})`;
-    }
-    return String(role ?? 'undefined');
   }
 }

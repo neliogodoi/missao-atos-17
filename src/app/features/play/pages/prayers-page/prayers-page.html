@@ -3,9 +3,34 @@
     <div body class="prayers-body">
       <form [formGroup]="form" (ngSubmit)="onSendPrayer()" class="form">
         <label>
-          UID do colega
-          <input type="text" formControlName="recipientUid" placeholder="Cole o UID do colega" />
+          Buscar colega
+          <input
+            type="text"
+            [value]="recipientSearch()"
+            (input)="onRecipientSearch($any($event.target).value)"
+            placeholder="Digite nome do colega"
+          />
         </label>
+
+        <div class="recipient-selected" *ngIf="selectedRecipient() as selected">
+          <p>Selecionado: <strong>{{ selected.displayName }}</strong></p>
+          <button type="button" class="btn-clear" (click)="clearSelectedRecipient()">Trocar</button>
+        </div>
+
+        <div class="recipient-list" *ngIf="recipients$ | async as recipients">
+          <button
+            type="button"
+            class="recipient-item"
+            *ngFor="let recipient of recipients"
+            (click)="onSelectRecipient(recipient)"
+          >
+            <img *ngIf="recipient.photoURL; else fallbackAvatar" [src]="recipient.photoURL" [alt]="recipient.displayName" />
+            <ng-template #fallbackAvatar>
+              <span class="avatar-fallback">{{ recipient.displayName.charAt(0).toUpperCase() }}</span>
+            </ng-template>
+            <span>{{ recipient.displayName }}</span>
+          </button>
+        </div>
 
         <label>
           Sua oração
@@ -16,7 +41,7 @@
           ></textarea>
         </label>
 
-        <button type="submit" [disabled]="sending() || form.invalid">
+        <button type="submit" [disabled]="sending() || form.invalid || !selectedRecipient()">
           {{ sending() ? 'Enviando...' : 'Enviar oração' }}
         </button>
       </form>

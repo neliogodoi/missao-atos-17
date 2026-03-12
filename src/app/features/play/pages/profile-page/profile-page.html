@@ -6,9 +6,10 @@
       <h3>Meu Perfil</h3>
 
       <div class="meta">
-        <p><strong>UID:</strong> {{ uid() }}</p>
+        <p><strong>Nome:</strong> {{ initialDisplayName() || '-' }}</p>
         <p><strong>Email:</strong> {{ email() || '-' }}</p>
         <p><strong>Role:</strong> {{ role() }}</p>
+        <p><strong>UID:</strong> {{ uid() }}</p>
       </div>
 
       <div class="tags">
@@ -19,15 +20,18 @@
       <section class="armor-progress">
         <h4>Progresso da Armadura</h4>
         <div class="armor-list">
-          <article class="armor-item" *ngFor="let item of armorProgress()">
+          <article class="armor-item" *ngFor="let item of armorProgress()" tabindex="0">
             <img [src]="item.imageSrc" [alt]="item.itemName" />
-            <div class="armor-content">
-              <div class="armor-head">
-                <strong>{{ item.itemName }}</strong>
-                <span>{{ item.earned }}/{{ item.target }}</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-fill" [style.width.%]="item.progressPercent"></div>
+            <div class="armor-overlay">
+              <div class="armor-content">
+                <div class="armor-head">
+                  <strong>{{ item.itemName }}</strong>
+                  <span>{{ item.earned }}/{{ item.target }}</span>
+                </div>
+                <p class="armor-percent">{{ item.progressPercent }}%</p>
+                <div class="progress-track">
+                  <div class="progress-fill" [style.width.%]="item.progressPercent"></div>
+                </div>
               </div>
             </div>
           </article>

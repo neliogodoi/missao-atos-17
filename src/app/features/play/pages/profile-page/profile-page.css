@@ -45,26 +45,47 @@ h3 {
 
 .armor-list {
   display: grid;
-  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.65rem;
 }
 
 .armor-item {
   border: 1px solid var(--stroke);
   border-radius: 0.75rem;
-  background: var(--surface-soft);
-  padding: 0.6rem;
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  gap: 0.65rem;
-  align-items: center;
+  background: var(--surface);
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
 }
 
 .armor-item img {
-  width: 56px;
-  height: 56px;
-  border-radius: 0.6rem;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 1px solid var(--stroke);
+  display: block;
+}
+
+.armor-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-items: end;
+  padding: 0.6rem;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, #000 72%, transparent 28%) 0%,
+    color-mix(in srgb, #000 35%, transparent 65%) 55%,
+    transparent 100%
+  );
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.armor-item:hover .armor-overlay,
+.armor-item:focus-within .armor-overlay {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .armor-content {
@@ -80,12 +101,18 @@ h3 {
 }
 
 .armor-head strong {
-  color: var(--text);
+  color: #fff;
 }
 
 .armor-head span {
-  color: var(--muted);
+  color: #d9e2f2;
   font-size: 0.85rem;
+}
+
+.armor-percent {
+  margin: 0;
+  color: #fff;
+  font-weight: 800;
 }
 
 .progress-track {
@@ -100,6 +127,13 @@ h3 {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--success), color-mix(in srgb, var(--success) 65%, white 35%));
+}
+
+@media (max-width: 700px) {
+  .armor-overlay {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .form {

@@ -164,6 +164,39 @@ service cloud.firestore {
     }
 
     // =====================
+    // Orações entre usuários
+    // =====================
+    match /prayers/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'senderUid',
+          'recipientUid',
+          'message',
+          'createdAt'
+        ])
+        && request.resource.data.senderUid is string
+        && request.resource.data.senderUid == request.auth.uid
+        && request.resource.data.recipientUid is string
+        && request.resource.data.recipientUid.size() > 0
+        && request.resource.data.recipientUid.size() <= 128
+        && request.resource.data.recipientUid != request.auth.uid
+        && exists(/databases/$(database)/documents/users/$(request.resource.data.recipientUid))
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 10
+        && request.resource.data.message.size() <= 1000
+        && isTimestampOrIsoString(request.resource.data.createdAt);
+
+      allow read: if signedIn()
+        && (
+          resource.data.senderUid == request.auth.uid
+          || resource.data.recipientUid == request.auth.uid
+          || isAdmin()
+        );
+
+      allow update, delete: if false;
+    }
+
+    // =====================
     // Retro access grants
     // =====================
     match /retroAccess/{uid} {

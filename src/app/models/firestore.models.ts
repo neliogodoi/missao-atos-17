@@ -69,6 +69,13 @@ export interface RetroAccess {
   updatedAt: string;
 }
 
+export interface PrayerMessage {
+  senderUid: string;
+  recipientUid: string;
+  message: string;
+  createdAt: string | Timestamp;
+}
+
 export interface XpLedger {
   id: string;
   userId: string;

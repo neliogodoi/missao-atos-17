@@ -31,6 +31,10 @@ export const PLAY_ROUTES: Routes = [
         loadComponent: () => import('./pages/narrative-page/narrative-page').then((m) => m.NarrativePage)
       },
       {
+        path: 'oracoes',
+        loadComponent: () => import('./pages/prayers-page/prayers-page').then((m) => m.PrayersPage)
+      },
+      {
         path: 'perfil',
         loadComponent: () => import('./pages/profile-page/profile-page').then((m) => m.ProfilePage)
       }

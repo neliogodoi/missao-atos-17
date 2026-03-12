@@ -3,14 +3,8 @@
 
   <ng-container *ngIf="!loading()">
     <section class="profile-card">
-      <h3>Meu Perfil</h3>
-
-      <div class="meta">
-        <p><strong>Nome:</strong> {{ initialDisplayName() || '-' }}</p>
-        <p><strong>Email:</strong> {{ email() || '-' }}</p>
-        <p><strong>Role:</strong> {{ role() }}</p>
-        <p><strong>UID:</strong> {{ uid() }}</p>
-      </div>
+      <p class="profile-label">Perfil do Jogador</p>
+      <h2 class="epic-name">{{ initialDisplayName() || 'Guerreiro(a)' }}</h2>
 
       <div class="tags">
         <app-xp-tag [value]="totalXp()" label="XP 🪙" [showPlus]="false" />
@@ -38,24 +32,7 @@
         </div>
       </section>
 
-      <form [formGroup]="form" (ngSubmit)="onSave()" class="form">
-        <label>
-          Nome de exibição
-          <input type="text" formControlName="displayName" />
-        </label>
-
-        <label>
-          URL da foto
-          <input type="url" formControlName="photoURL" placeholder="https://..." />
-        </label>
-
-        <button type="submit" [disabled]="saving() || !isDirty() || form.invalid">
-          {{ saving() ? 'Salvando...' : 'Salvar perfil' }}
-        </button>
-      </form>
-
       <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-      <p class="success" *ngIf="successMessage()">{{ successMessage() }}</p>
     </section>
   </ng-container>
 </section>

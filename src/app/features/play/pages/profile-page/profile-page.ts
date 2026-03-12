@@ -1,7 +1,6 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, firstValueFrom, map, of, switchMap, take } from 'rxjs';
 
 import { Season, UserAnswer, UserStats } from '../../../../models/firestore.models';
@@ -39,40 +38,22 @@ const FORGE_ITEM_IMAGE_MAP: Record<ForgeItemName, string> = {
 
 @Component({
   selector: 'app-profile-page',
-  imports: [NgIf, NgFor, ReactiveFormsModule, XpTagComponent],
+  imports: [NgIf, NgFor, XpTagComponent],
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.css'
 })
 export class ProfilePage {
-  private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
   private readonly firestoreService = inject(FirestoreService);
   private readonly gameRepository = inject(GameRepository);
 
   readonly loading = signal(true);
-  readonly saving = signal(false);
   readonly errorMessage = signal<string | null>(null);
-  readonly successMessage = signal<string | null>(null);
-  readonly uid = signal<string | null>(null);
-  readonly email = signal<string>('');
-  readonly role = signal<string>('player');
   readonly totalXp = signal(0);
   readonly streak = signal(0);
   readonly initialDisplayName = signal('');
-  readonly initialPhotoURL = signal('');
   readonly armorProgress = signal<ArmorProgressVm[]>([]);
-
-  readonly form = this.fb.nonNullable.group({
-    displayName: ['', [Validators.required, Validators.maxLength(80)]],
-    photoURL: ['', [Validators.maxLength(500)]]
-  });
-
-  readonly isDirty = computed(() => {
-    const value = this.form.getRawValue();
-    return value.displayName.trim() !== this.initialDisplayName()
-      || value.photoURL.trim() !== this.initialPhotoURL();
-  });
 
   readonly profileVm$ = this.authService.user$.pipe(
     switchMap((user) => {
@@ -87,10 +68,7 @@ export class ProfilePage {
       ]).pipe(
         map(([profileDoc, stats]) => ({
           uid,
-          email: user.email ?? '',
           displayName: profileDoc?.displayName || user.displayName || '',
-          photoURL: profileDoc?.photoURL || user.photoURL || '',
-          role: profileDoc?.role || 'player',
           totalXp: stats?.totalXp ?? 0,
           streak: stats?.streak ?? 0
         }))
@@ -104,22 +82,13 @@ export class ProfilePage {
       .subscribe({
         next: (vm) => {
           if (!vm) {
-            this.uid.set(null);
             this.loading.set(false);
             return;
           }
 
-          this.uid.set(vm.uid);
-          this.email.set(vm.email);
-          this.role.set(vm.role);
           this.totalXp.set(vm.totalXp);
           this.streak.set(vm.streak);
           this.initialDisplayName.set(vm.displayName);
-          this.initialPhotoURL.set(vm.photoURL);
-          this.form.reset({
-            displayName: vm.displayName,
-            photoURL: vm.photoURL
-          });
           void this.loadArmorProgress(vm.uid);
           this.loading.set(false);
         },
@@ -129,33 +98,6 @@ export class ProfilePage {
           this.loading.set(false);
         }
       });
-  }
-
-  async onSave(): Promise<void> {
-    if (this.form.invalid || !this.uid()) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.saving.set(true);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
-
-    const value = this.form.getRawValue();
-    const displayName = value.displayName.trim();
-    const photoURL = value.photoURL.trim();
-
-    try {
-      await this.firestoreService.updateDoc(`users/${this.uid()}`, { displayName, photoURL });
-      this.initialDisplayName.set(displayName);
-      this.initialPhotoURL.set(photoURL);
-      this.successMessage.set('Perfil atualizado com sucesso.');
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Não foi possível salvar o perfil.';
-      this.errorMessage.set(message);
-    } finally {
-      this.saving.set(false);
-    }
   }
 
   private async loadArmorProgress(uid: string): Promise<void> {

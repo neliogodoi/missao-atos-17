@@ -12,19 +12,26 @@
   gap: 0.9rem;
 }
 
-h3 {
-  margin: 0;
-}
-
-.meta {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.meta p {
+.profile-label {
   margin: 0;
   color: var(--muted);
-  overflow-wrap: anywhere;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.epic-name {
+  margin: 0;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 900;
+  color: #f8e4a8;
+  text-shadow:
+    0 2px 0 color-mix(in srgb, #6c4b1f 70%, transparent 30%),
+    0 8px 22px color-mix(in srgb, #000 45%, transparent 55%);
 }
 
 .tags {
@@ -129,40 +136,12 @@ h3 {
   background: linear-gradient(90deg, var(--success), color-mix(in srgb, var(--success) 65%, white 35%));
 }
 
-@media (max-width: 700px) {
-  .armor-overlay {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.form {
-  display: grid;
-  gap: 0.8rem;
-}
-
-label {
-  display: grid;
-  gap: 0.35rem;
-  color: var(--muted);
-}
-
-button {
-  min-height: var(--btn-h-sm);
-  padding: 0 0.85rem;
-  border-radius: 0.65rem;
-  background: var(--gold);
-  color: var(--text);
-  border-color: transparent;
-}
-
 .loading-text {
   margin: 0;
   color: var(--muted);
 }
 
-.error,
-.success {
+.error {
   margin: 0;
   border-radius: 0.65rem;
   padding: 0.55rem 0.7rem;
@@ -174,8 +153,9 @@ button {
   background: var(--danger-bg);
 }
 
-.success {
-  color: var(--text-on-success);
-  border: 1px solid var(--success-border);
-  background: var(--success-bg);
+@media (max-width: 700px) {
+  .armor-overlay {
+    opacity: 1;
+    transform: none;
+  }
 }

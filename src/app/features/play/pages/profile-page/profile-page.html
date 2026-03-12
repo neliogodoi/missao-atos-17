@@ -16,6 +16,24 @@
         <app-xp-tag [value]="streak()" label="dias 🔥" [showPlus]="false" variant="streak" />
       </div>
 
+      <section class="armor-progress">
+        <h4>Progresso da Armadura</h4>
+        <div class="armor-list">
+          <article class="armor-item" *ngFor="let item of armorProgress()">
+            <img [src]="item.imageSrc" [alt]="item.itemName" />
+            <div class="armor-content">
+              <div class="armor-head">
+                <strong>{{ item.itemName }}</strong>
+                <span>{{ item.earned }}/{{ item.target }}</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" [style.width.%]="item.progressPercent"></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <form [formGroup]="form" (ngSubmit)="onSave()" class="form">
         <label>
           Nome de exibição

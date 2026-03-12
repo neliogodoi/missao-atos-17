@@ -2,54 +2,55 @@
   <h1 class="brand">Missao Atos 17</h1>
 
   <nav class="nav-links">
-    <a
-      routerLink="/login"
-      routerLinkActive="active"
-      *ngIf="!(user$ | async)"
-      aria-label="Login"
-      title="Login"
-    ><mat-icon class="material-icons-outlined">login</mat-icon></a>
-    <a routerLink="/play" routerLinkActive="active" aria-label="Play" title="Play">
-      <mat-icon class="material-icons-outlined">sports_esports</mat-icon>
-    </a>
-    <a routerLink="/play/narrativa" routerLinkActive="active" aria-label="Narrativa" title="Narrativa">
-      <mat-icon class="material-icons-outlined">auto_stories</mat-icon>
-    </a>
-    <a routerLink="/play/journey" routerLinkActive="active" aria-label="Forja" title="Forja">
-      <mat-icon class="material-icons-outlined">shield</mat-icon>
-    </a>
-    <a routerLink="/play/ranking" routerLinkActive="active" aria-label="Ranking" title="Ranking">
-      <mat-icon class="material-icons-outlined">leaderboard</mat-icon>
-    </a>
-    <a routerLink="/play/regras" routerLinkActive="active" aria-label="Regras" title="Regras">
-      <mat-icon class="material-icons-outlined">help</mat-icon>
-    </a>
-
-    <ng-container *ngIf="profile$ | async as profile">
-      <a
-        *ngIf="profile.role === 'admin'"
-        routerLink="/admin"
-        routerLinkActive="active"
-        aria-label="Admin"
-        title="Admin"
-      >
-        <mat-icon class="material-icons-outlined">admin_panel_settings</mat-icon>
+    <ng-container *ngIf="user$ | async; else loggedOutNav">
+      <a routerLink="/play" routerLinkActive="active" aria-label="Play" title="Play">
+        <mat-icon class="material-icons-outlined">sports_esports</mat-icon>
       </a>
-      <div class="profile-chip" title="Usuário logado">
-        <img
-          *ngIf="profile.photoURL && !profileImageFailed(); else fallbackAvatar"
-          [src]="profile.photoURL"
-          [alt]="profile.displayName || 'Usuário'"
-          (error)="onProfileImageError()"
-        />
-        <ng-template #fallbackAvatar>
-          <span>{{ (profile.displayName.charAt(0) || 'U').toUpperCase() }}</span>
-        </ng-template>
-      </div>
-      <button type="button" class="icon-btn" (click)="onLogout()" aria-label="Sair" title="Sair">
-        <mat-icon class="material-icons-outlined">logout</mat-icon>
-      </button>
+      <a routerLink="/play/narrativa" routerLinkActive="active" aria-label="Narrativa" title="Narrativa">
+        <mat-icon class="material-icons-outlined">auto_stories</mat-icon>
+      </a>
+      <a routerLink="/play/journey" routerLinkActive="active" aria-label="Forja" title="Forja">
+        <mat-icon class="material-icons-outlined">shield</mat-icon>
+      </a>
+      <a routerLink="/play/ranking" routerLinkActive="active" aria-label="Ranking" title="Ranking">
+        <mat-icon class="material-icons-outlined">leaderboard</mat-icon>
+      </a>
+      <a routerLink="/play/regras" routerLinkActive="active" aria-label="Regras" title="Regras">
+        <mat-icon class="material-icons-outlined">help</mat-icon>
+      </a>
+
+      <ng-container *ngIf="profile$ | async as profile">
+        <a
+          *ngIf="profile.role === 'admin'"
+          routerLink="/admin"
+          routerLinkActive="active"
+          aria-label="Admin"
+          title="Admin"
+        >
+          <mat-icon class="material-icons-outlined">admin_panel_settings</mat-icon>
+        </a>
+        <div class="profile-chip" title="Usuário logado">
+          <img
+            *ngIf="profile.photoURL && !profileImageFailed(); else fallbackAvatar"
+            [src]="profile.photoURL"
+            [alt]="profile.displayName || 'Usuário'"
+            (error)="onProfileImageError()"
+          />
+          <ng-template #fallbackAvatar>
+            <span>{{ (profile.displayName.charAt(0) || 'U').toUpperCase() }}</span>
+          </ng-template>
+        </div>
+        <button type="button" class="icon-btn" (click)="onLogout()" aria-label="Sair" title="Sair">
+          <mat-icon class="material-icons-outlined">logout</mat-icon>
+        </button>
+      </ng-container>
     </ng-container>
+
+    <ng-template #loggedOutNav>
+      <a routerLink="/login" routerLinkActive="active" aria-label="Login" title="Login">
+        <mat-icon class="material-icons-outlined">login</mat-icon>
+      </a>
+    </ng-template>
   </nav>
 </header>
 

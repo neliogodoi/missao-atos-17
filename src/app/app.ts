@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { AsyncPipe, NgIf } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 
@@ -21,6 +21,7 @@ interface ProfileVm {
   styleUrl: './app.css'
 })
 export class App {
+  private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly firestoreService = inject(FirestoreService);
 
@@ -64,5 +65,6 @@ export class App {
 
   async onLogout(): Promise<void> {
     await this.authService.logout();
+    await this.router.navigateByUrl('/login');
   }
 }

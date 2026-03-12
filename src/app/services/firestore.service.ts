@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
+import { environment } from '../../environments/environment';
 import {
   CollectionReference,
   DocumentData,
@@ -84,7 +85,8 @@ export class FirestoreService {
       throw new Error('Usuário não autenticado.');
     }
 
-    const userRef = doc(this.firestore, `users/${user.uid}`);
+    const rolePath = `users/${user.uid}`;
+    const userRef = doc(this.firestore, rolePath);
     const [serverSnap, fallbackSnap] = await Promise.allSettled([getDocFromServer(userRef), getDoc(userRef)]);
 
     const snapshot = serverSnap.status === 'fulfilled'
@@ -94,14 +96,20 @@ export class FirestoreService {
     const normalizedRole = typeof role === 'string' ? role.trim().toLowerCase() : '';
 
     if (normalizedRole !== 'admin') {
-      throw new Error(`Permissão de admin ausente para UID ${user.uid}. role atual: ${String(role ?? 'undefined')}.`);
+      throw new Error(
+        `Permissão de admin ausente. UID corrente: ${user.uid} | path de role: ${rolePath} | role atual: ${String(role ?? 'undefined')}`
+      );
     }
   }
 
   private mapFirestoreError(error: unknown): Error {
     if (error instanceof FirebaseError && error.code === 'permission-denied') {
       const uid = this.auth.currentUser?.uid ?? 'desconhecido';
-      return new Error(`Permissão negada no Firestore para UID ${uid}. Verifique role=admin em users/${uid}.`);
+      const rolePath = `users/${uid}`;
+      const projectId = environment.firebase.projectId;
+      return new Error(
+        `Permissão negada no Firestore. UID corrente: ${uid} | path de role: ${rolePath} | projectId: ${projectId}`
+      );
     }
 
     if (error instanceof Error) {

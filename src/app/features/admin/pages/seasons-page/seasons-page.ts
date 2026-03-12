@@ -53,6 +53,7 @@ export class SeasonsPage {
     };
 
     try {
+      await this.firestoreService.assertCurrentUserIsAdmin();
       const seasonId = this.editingId();
       if (seasonId) {
         await this.firestoreService.updateDoc(`seasons/${seasonId}`, payload);
@@ -94,6 +95,7 @@ export class SeasonsPage {
     this.errorMessage.set(null);
 
     try {
+      await this.firestoreService.assertCurrentUserIsAdmin();
       await this.firestoreService.updateDoc(`seasons/${season.id}`, {
         isActive: !season.isActive,
         updatedAt: new Date().toISOString()

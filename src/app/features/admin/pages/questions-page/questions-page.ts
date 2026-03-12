@@ -58,6 +58,7 @@ export class QuestionsPage {
     };
 
     try {
+      await this.firestoreService.assertCurrentUserIsAdmin();
       const questionId = this.editingId();
       if (questionId) {
         await this.firestoreService.updateDoc(`questions/${questionId}`, payload);

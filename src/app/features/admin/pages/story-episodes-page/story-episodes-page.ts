@@ -48,6 +48,7 @@ export class StoryEpisodesPage {
     };
 
     try {
+      await this.firestoreService.assertCurrentUserIsAdmin();
       const episodeId = this.editingId();
       if (episodeId) {
         await this.firestoreService.updateDoc(`storyEpisodes/${episodeId}`, payload);
@@ -85,6 +86,7 @@ export class StoryEpisodesPage {
     this.errorMessage.set(null);
 
     try {
+      await this.firestoreService.assertCurrentUserIsAdmin();
       await this.firestoreService.deleteDoc(`storyEpisodes/${episodeId}`);
       if (this.editingId() === episodeId) {
         this.resetForm();

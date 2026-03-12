@@ -68,6 +68,7 @@ export class DailyMissionsPage {
     };
 
     try {
+      await this.firestoreService.assertCurrentUserIsAdmin();
       const missionId = this.editingId();
       if (missionId) {
         await this.firestoreService.updateDoc(`dailyMissions/${missionId}`, payload);
@@ -106,6 +107,7 @@ export class DailyMissionsPage {
     this.errorMessage.set(null);
 
     try {
+      await this.firestoreService.assertCurrentUserIsAdmin();
       await this.firestoreService.deleteDoc(`dailyMissions/${missionId}`);
       if (this.editingId() === missionId) {
         this.resetForm();

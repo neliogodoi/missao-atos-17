@@ -20,7 +20,11 @@ service cloud.firestore {
     function isAdmin() {
       return signedIn()
         && currentUserDoc().exists()
-        && currentUserDoc().data.role == 'admin';
+        && (
+          currentUserDoc().data.role == 'admin'
+          || currentUserDoc().data.role == 'Admin'
+          || currentUserDoc().data.role == 'ADMIN'
+        );
     }
 
     function isValidDateKey(value) {

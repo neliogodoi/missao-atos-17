@@ -12,6 +12,7 @@ type AdminDiagnostic = {
   email: string;
   projectId: string;
   role: string;
+  roleRaw: string;
   rolePath: string;
 };
 
@@ -48,6 +49,7 @@ type AdminDiagnostic = {
             <p><strong>email:</strong> {{ d.email }}</p>
             <p><strong>projectId:</strong> {{ d.projectId }}</p>
             <p><strong>role ({{ d.rolePath }}):</strong> {{ d.role }}</p>
+            <p><strong>role raw:</strong> {{ d.roleRaw }}</p>
             <div class="debug-actions">
               <button type="button" (click)="copyDiagnostic(d)">{{ copied() ? 'Copiado' : 'Copiar diagnóstico' }}</button>
             </div>
@@ -163,6 +165,7 @@ export class AdminHome {
           email: '(deslogado)',
           projectId,
           role: '(sem sessão)',
+          roleRaw: '(sem sessão)',
           rolePath: 'users/(sem-uid)'
         });
       }
@@ -174,6 +177,7 @@ export class AdminHome {
           email: user.email ?? '(sem email)',
           projectId,
           role: this.normalizeRole(data),
+          roleRaw: this.formatRoleRaw(data),
           rolePath
         })),
         catchError((err: unknown) =>
@@ -182,6 +186,7 @@ export class AdminHome {
             email: user.email ?? '(sem email)',
             projectId,
             role: `erro ao ler role: ${err instanceof Error ? err.message : String(err)}`,
+            roleRaw: '(erro)',
             rolePath
           })
         )
@@ -190,7 +195,9 @@ export class AdminHome {
   );
 
   async copyDiagnostic(diagnostic: AdminDiagnostic): Promise<void> {
-    const payload = `uid=${diagnostic.uid}; email=${diagnostic.email}; projectId=${diagnostic.projectId}; role=${diagnostic.role}`;
+    const payload =
+      `uid=${diagnostic.uid}; email=${diagnostic.email}; projectId=${diagnostic.projectId}; ` +
+      `role=${diagnostic.role}; roleRaw=${diagnostic.roleRaw}; rolePath=${diagnostic.rolePath}`;
     if (typeof navigator === 'undefined' || !navigator.clipboard) {
       return;
     }
@@ -206,6 +213,17 @@ export class AdminHome {
     }
     const roleValue = (data as Record<string, unknown>)['role'];
     return typeof roleValue === 'string' && roleValue.trim() !== '' ? roleValue : '(role ausente)';
+  }
+
+  private formatRoleRaw(data: unknown): string {
+    if (!data || typeof data !== 'object') {
+      return '(documento ausente)';
+    }
+    const roleValue = (data as Record<string, unknown>)['role'];
+    if (typeof roleValue === 'string') {
+      return `${JSON.stringify(roleValue)} (len=${roleValue.length})`;
+    }
+    return String(roleValue ?? 'undefined');
   }
 
   private resolveDebugEnabled(): boolean {

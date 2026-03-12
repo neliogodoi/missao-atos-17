@@ -12,7 +12,6 @@ import {
   deleteDoc as deleteFirestoreDoc,
   doc,
   docData,
-  getDoc,
   getDocFromServer,
   setDoc as setFirestoreDoc,
   updateDoc as updateFirestoreDoc
@@ -87,17 +86,12 @@ export class FirestoreService {
 
     const rolePath = `users/${user.uid}`;
     const userRef = doc(this.firestore, rolePath);
-    const [serverSnap, fallbackSnap] = await Promise.allSettled([getDocFromServer(userRef), getDoc(userRef)]);
-
-    const snapshot = serverSnap.status === 'fulfilled'
-      ? serverSnap.value
-      : (fallbackSnap.status === 'fulfilled' ? fallbackSnap.value : null);
+    const snapshot = await getDocFromServer(userRef);
     const role = snapshot?.data()?.['role'];
-    const normalizedRole = typeof role === 'string' ? role.trim().toLowerCase() : '';
 
-    if (normalizedRole !== 'admin') {
+    if (role !== 'admin') {
       throw new Error(
-        `Permissão de admin ausente. UID corrente: ${user.uid} | path de role: ${rolePath} | role atual: ${String(role ?? 'undefined')}`
+        `Permissão de admin ausente. UID corrente: ${user.uid} | path de role: ${rolePath} | role atual: ${this.formatRole(role)}`
       );
     }
   }
@@ -117,5 +111,12 @@ export class FirestoreService {
     }
 
     return new Error('Erro inesperado no Firestore.');
+  }
+
+  private formatRole(role: unknown): string {
+    if (typeof role === 'string') {
+      return `${JSON.stringify(role)} (len=${role.length})`;
+    }
+    return String(role ?? 'undefined');
   }
 }

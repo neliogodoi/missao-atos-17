@@ -26,6 +26,9 @@ import { MatIconModule } from '@angular/material/icon';
           <a routerLink="daily-missions" routerLinkActive="active" title="Daily Missions" aria-label="Daily Missions">
             <mat-icon class="material-icons-outlined">task_alt</mat-icon>
           </a>
+          <a routerLink="retro-access" routerLinkActive="active" title="Retro Access" aria-label="Retro Access">
+            <mat-icon class="material-icons-outlined">manage_accounts</mat-icon>
+          </a>
         </nav>
       </header>
 

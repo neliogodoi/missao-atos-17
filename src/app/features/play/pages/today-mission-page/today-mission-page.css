@@ -3,6 +3,26 @@
   gap: 1rem;
 }
 
+.date-filter {
+  border: 1px solid var(--stroke);
+  border-radius: 0.75rem;
+  background: var(--surface-soft);
+  padding: 0.8rem 0.9rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.date-filter label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+}
+
+.date-filter small {
+  color: var(--text);
+  font-weight: 600;
+}
+
 p,
 h4 {
   margin: 0;

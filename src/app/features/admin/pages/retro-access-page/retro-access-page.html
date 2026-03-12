@@ -1,0 +1,87 @@
+<section class="panel">
+  <h3>Acesso Retroativo</h3>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+    <label>
+      UID do usuário
+      <input type="text" formControlName="uid" placeholder="UID exato do Firebase Auth" />
+    </label>
+
+    <div class="grid-2">
+      <label class="checkbox">
+        <input type="checkbox" formControlName="enabled" />
+        Ativo
+      </label>
+
+      <label class="checkbox">
+        <input type="checkbox" formControlName="allowAllRetro" />
+        Liberar todo retroativo
+      </label>
+    </div>
+
+    <div class="grid-2">
+      <label>
+        Início permitido (opcional)
+        <input type="date" formControlName="startDateKey" />
+      </label>
+      <label>
+        Fim permitido (opcional)
+        <input type="date" formControlName="endDateKey" />
+      </label>
+    </div>
+
+    <label>
+      Datas específicas (opcional)
+      <textarea
+        rows="3"
+        formControlName="allowedDateKeysText"
+        placeholder="Ex: 2026-03-01, 2026-03-02"
+      ></textarea>
+    </label>
+
+    <label>
+      Observação (opcional)
+      <input type="text" formControlName="note" placeholder="Ex: revisão de conteúdo atrasado" />
+    </label>
+
+    <div class="actions">
+      <button type="submit" [disabled]="loading()">{{ editingUid() ? 'Salvar edição' : 'Conceder acesso' }}</button>
+      <button type="button" (click)="onCancelEdit()" *ngIf="editingUid()">Cancelar</button>
+    </div>
+  </form>
+
+  <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <div class="list" *ngIf="accesses$ | async as accesses">
+    <article class="item" *ngFor="let access of accesses">
+      <div class="item-main">
+        <div class="item-head">
+          <strong>{{ access.uid }}</strong>
+          <span class="badge" [class.on]="access.enabled">{{ access.enabled ? 'Ativo' : 'Inativo' }}</span>
+        </div>
+
+        <p class="item-line">
+          <span class="item-label">Escopo</span>
+          <span class="item-value">{{ access.allowAllRetro ? 'Todos os retroativos' : 'Parcial' }}</span>
+        </p>
+        <p class="item-line" *ngIf="!access.allowAllRetro">
+          <span class="item-label">Intervalo</span>
+          <span class="item-value">{{ access.startDateKey || '-' }} → {{ access.endDateKey || '-' }}</span>
+        </p>
+        <p class="item-line" *ngIf="!access.allowAllRetro">
+          <span class="item-label">Datas</span>
+          <span class="item-value">{{ (access.allowedDateKeys || []).join(', ') || '-' }}</span>
+        </p>
+        <p class="item-line">
+          <span class="item-label">Obs</span>
+          <span class="item-value">{{ access.note || '-' }}</span>
+        </p>
+      </div>
+
+      <div class="item-actions">
+        <button type="button" (click)="onEdit(access)">Editar</button>
+        <button type="button" (click)="onDisable(access)" [disabled]="!access.enabled">Desativar</button>
+      </div>
+    </article>
+  </div>
+</section>

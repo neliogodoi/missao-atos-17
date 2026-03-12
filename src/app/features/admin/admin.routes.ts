@@ -27,6 +27,10 @@ export const ADMIN_ROUTES: Routes = [
         path: 'daily-missions',
         loadComponent: () =>
           import('./pages/daily-missions-page/daily-missions-page').then((m) => m.DailyMissionsPage)
+      },
+      {
+        path: 'retro-access',
+        loadComponent: () => import('./pages/retro-access-page/retro-access-page').then((m) => m.RetroAccessPage)
       }
     ]
   }

@@ -1,5 +1,6 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -9,8 +10,8 @@ import {
   Validators
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
-import { combineLatest, of, switchMap } from 'rxjs';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { combineLatest, of, switchMap, throwError } from 'rxjs';
 
 import { AuthService } from '../../../../services/auth.service';
 import { GameRepository } from '../../../../services/game-repository.service';
@@ -47,9 +48,12 @@ export class TodayMissionPage {
   private readonly gameRepository = inject(GameRepository);
   private readonly gameScoringService = inject(GameScoringService);
   private readonly toastService = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
 
-  readonly dateKey = this.getLocalDateKey();
-  readonly formattedToday = this.formatDateKey(this.dateKey);
+  readonly todayDateKey = this.getLocalDateKey();
+  readonly selectedDateKey = signal(this.todayDateKey);
+  readonly selectedDateFormatted = computed(() => this.formatDateKey(this.selectedDateKey()));
+  readonly isRetroDate = computed(() => this.selectedDateKey() < this.todayDateKey);
 
   readonly loading = signal(true);
   readonly submitting = signal(false);
@@ -171,6 +175,7 @@ export class TodayMissionPage {
   }
 
   constructor() {
+    this.bindSelectedDateFromQuery();
     this.loadTodayMission();
   }
 
@@ -260,10 +265,12 @@ export class TodayMissionPage {
   }
 
   private loadTodayMission(): void {
-    this.authService.user$
+    combineLatest([this.authService.user$, toObservable(this.selectedDateKey)])
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        switchMap((user) => {
+        switchMap(([user, targetDateKey]) => {
+          this.loading.set(true);
+          this.errorMessage.set(null);
           if (!user) {
             this.uid.set(null);
             this.mission.set(null);
@@ -279,8 +286,13 @@ export class TodayMissionPage {
           }
 
           this.uid.set(user.uid);
-
-          return this.gameRepository.getMissionByDateKey(this.dateKey).pipe(
+          return this.gameRepository.canAccessMissionDate$(user.uid, targetDateKey, this.todayDateKey).pipe(
+            switchMap((hasAccess) => {
+              if (!hasAccess) {
+                return throwError(() => new Error('Acesso retroativo não liberado para esta data.'));
+              }
+              return this.gameRepository.getMissionByDateKey(targetDateKey);
+            }),
             switchMap((mission) => {
               this.mission.set(mission);
 
@@ -299,7 +311,7 @@ export class TodayMissionPage {
               return combineLatest([
                 this.gameRepository.getStoryEpisode(mission.storyEpisodeId),
                 this.gameRepository.getQuestion(mission.questionId),
-                this.gameRepository.getUserAnswerByDate$(user.uid, this.dateKey)
+                this.gameRepository.getUserAnswerByDate$(user.uid, targetDateKey)
               ]);
             })
           );
@@ -357,5 +369,29 @@ export class TodayMissionPage {
   private formatDateKey(dateKey: string): string {
     const [year, month, day] = dateKey.split('-');
     return `${day}/${month}/${year}`;
+  }
+
+  onSelectDate(rawDate: string): void {
+    if (!this.isValidDateKey(rawDate)) {
+      return;
+    }
+    this.selectedDateKey.set(rawDate);
+  }
+
+  private bindSelectedDateFromQuery(): void {
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const rawDate = params.get('date');
+        if (rawDate && this.isValidDateKey(rawDate)) {
+          this.selectedDateKey.set(rawDate);
+          return;
+        }
+        this.selectedDateKey.set(this.todayDateKey);
+      });
+  }
+
+  private isValidDateKey(value: string): boolean {
+    return /^\d{4}-\d{2}-\d{2}$/.test(value);
   }
 }

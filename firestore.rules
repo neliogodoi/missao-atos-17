@@ -165,6 +165,59 @@ service cloud.firestore {
     }
 
     // =====================
+    // Retro access grants
+    // =====================
+    match /retroAccess/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          'uid',
+          'enabled',
+          'allowAllRetro',
+          'startDateKey',
+          'endDateKey',
+          'allowedDateKeys',
+          'note',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.uid == uid
+        && request.resource.data.enabled is bool
+        && request.resource.data.allowAllRetro is bool
+        && (
+          !('startDateKey' in request.resource.data)
+          || request.resource.data.startDateKey == null
+          || isValidDateKey(request.resource.data.startDateKey)
+        )
+        && (
+          !('endDateKey' in request.resource.data)
+          || request.resource.data.endDateKey == null
+          || isValidDateKey(request.resource.data.endDateKey)
+        )
+        && (
+          !('allowedDateKeys' in request.resource.data)
+          || request.resource.data.allowedDateKeys == null
+          || (
+            request.resource.data.allowedDateKeys is list
+            && request.resource.data.allowedDateKeys.size() <= 366
+          )
+        )
+        && (
+          !('note' in request.resource.data)
+          || request.resource.data.note == null
+          || (
+            request.resource.data.note is string
+            && request.resource.data.note.size() <= 240
+          )
+        )
+        && isTimestampOrIsoString(request.resource.data.createdAt)
+        && isTimestampOrIsoString(request.resource.data.updatedAt);
+
+      allow delete: if false;
+    }
+
+    // =====================
     // Client auth logs
     // =====================
     match /authClientLogs/{logId} {

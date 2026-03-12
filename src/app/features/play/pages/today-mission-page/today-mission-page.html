@@ -1,4 +1,17 @@
 <section class="today-page">
+  <section class="date-filter">
+    <label>
+      Data da missão
+      <input
+        type="date"
+        [value]="selectedDateKey()"
+        [max]="todayDateKey"
+        (change)="onSelectDate($any($event.target).value)"
+      />
+    </label>
+    <small *ngIf="isRetroDate()">Modo retroativo</small>
+  </section>
+
   <div *ngIf="loading()" class="skeleton-card" aria-hidden="true">
     <div class="skeleton skeleton-title"></div>
     <div class="skeleton skeleton-line"></div>
@@ -14,13 +27,13 @@
     </p>
 
     <p class="empty-state" *ngIf="!mission()">
-      Nenhuma missão foi publicada para hoje. Volte mais tarde.
+      Nenhuma missão foi publicada para a data selecionada.
     </p>
 
     <ng-container *ngIf="mission() && episode() && question() as q">
       <app-mission-card
         [title]="'Missão do Dia'"
-        [subtitle]="formattedToday"
+        [subtitle]="selectedDateFormatted()"
         [status]="missionStatus"
       >
         <app-xp-tag

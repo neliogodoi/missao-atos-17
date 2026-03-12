@@ -59,6 +59,18 @@ export interface UserAnswerByDate {
   createdAt: Timestamp;
 }
 
+export interface RetroAccess {
+  uid: string;
+  enabled: boolean;
+  allowAllRetro: boolean;
+  startDateKey?: string;
+  endDateKey?: string;
+  allowedDateKeys?: string[];
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface XpLedger {
   id: string;
   userId: string;

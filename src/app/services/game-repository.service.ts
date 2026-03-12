@@ -18,6 +18,7 @@ import { Observable, map, of, shareReplay, switchMap, take, tap, throwError } fr
 import {
   DailyMission,
   Question,
+  RetroAccess,
   Season,
   StoryEpisode,
   UserRole,
@@ -202,6 +203,47 @@ export class GameRepository {
 
     return (docData(ref) as Observable<UserAnswerByDate | undefined>).pipe(
       map((answer) => answer ?? null)
+    );
+  }
+
+  getRetroAccess$(uid: string): Observable<RetroAccess | null> {
+    const ref = doc(this.firestore, `retroAccess/${uid}`);
+    return (docData(ref) as Observable<RetroAccess | undefined>).pipe(
+      map((access) => access ?? null)
+    );
+  }
+
+  canAccessMissionDate$(uid: string, requestedDateKey: string, todayDateKey: string): Observable<boolean> {
+    if (requestedDateKey >= todayDateKey) {
+      return of(true);
+    }
+
+    return this.getRetroAccess$(uid).pipe(
+      take(1),
+      map((access) => {
+        if (!access || !access.enabled) {
+          return false;
+        }
+
+        if (access.allowAllRetro) {
+          return true;
+        }
+
+        const startDateKey = (access.startDateKey ?? '').trim();
+        const endDateKey = (access.endDateKey ?? '').trim();
+        const inRange =
+          startDateKey !== ''
+          && endDateKey !== ''
+          && requestedDateKey >= startDateKey
+          && requestedDateKey <= endDateKey;
+
+        if (inRange) {
+          return true;
+        }
+
+        const allowedDateKeys = access.allowedDateKeys ?? [];
+        return allowedDateKeys.includes(requestedDateKey);
+      })
     );
   }
 

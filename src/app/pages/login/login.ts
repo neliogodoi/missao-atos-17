@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, filter } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
+import { AuthErrorLoggerService } from '../../services/auth-error-logger.service';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ export class LoginComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly firestore = inject(Firestore);
+  private readonly authErrorLogger = inject(AuthErrorLoggerService);
 
   readonly authService = inject(AuthService);
   readonly errorMessage = signal<string | null>(null);
@@ -53,6 +55,7 @@ export class LoginComponent {
     try {
       await this.authService.loginWithGoogle();
     } catch (error: unknown) {
+      void this.authErrorLogger.logGoogleLoginError(error).catch(() => {});
       const message = error instanceof Error ? error.message : 'Não foi possível entrar com Google.';
       this.errorMessage.set(message);
     } finally {

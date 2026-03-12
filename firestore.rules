@@ -164,6 +164,43 @@ service cloud.firestore {
       }
     }
 
+    // =====================
+    // Client auth logs
+    // =====================
+    match /authClientLogs/{logId} {
+      allow create: if request.resource.data.keys().hasOnly([
+          'context',
+          'errorCode',
+          'errorMessage',
+          'host',
+          'path',
+          'userAgent',
+          'language',
+          'authUid',
+          'createdAt'
+        ])
+        && request.resource.data.context == 'google-login'
+        && request.resource.data.errorCode is string
+        && request.resource.data.errorCode.size() > 0
+        && request.resource.data.errorCode.size() <= 120
+        && request.resource.data.errorMessage is string
+        && request.resource.data.errorMessage.size() > 0
+        && request.resource.data.errorMessage.size() <= 500
+        && request.resource.data.host is string
+        && request.resource.data.host.size() <= 255
+        && request.resource.data.path is string
+        && request.resource.data.path.size() <= 255
+        && request.resource.data.userAgent is string
+        && request.resource.data.userAgent.size() <= 500
+        && request.resource.data.language is string
+        && request.resource.data.language.size() <= 32
+        && request.resource.data.authUid is string
+        && request.resource.data.authUid.size() <= 128
+        && request.resource.data.createdAt is timestamp;
+
+      allow read, update, delete: if false;
+    }
+
     // Bloqueio global
     match /answers/{docId} {
       allow read, write: if false;

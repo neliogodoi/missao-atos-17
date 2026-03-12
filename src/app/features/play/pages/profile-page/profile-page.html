@@ -1,0 +1,39 @@
+<section class="profile-page">
+  <p *ngIf="loading()" class="loading-text">Carregando perfil...</p>
+
+  <ng-container *ngIf="!loading()">
+    <section class="profile-card">
+      <h3>Meu Perfil</h3>
+
+      <div class="meta">
+        <p><strong>UID:</strong> {{ uid() }}</p>
+        <p><strong>Email:</strong> {{ email() || '-' }}</p>
+        <p><strong>Role:</strong> {{ role() }}</p>
+      </div>
+
+      <div class="tags">
+        <app-xp-tag [value]="totalXp()" label="XP 🪙" [showPlus]="false" />
+        <app-xp-tag [value]="streak()" label="dias 🔥" [showPlus]="false" variant="streak" />
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSave()" class="form">
+        <label>
+          Nome de exibição
+          <input type="text" formControlName="displayName" />
+        </label>
+
+        <label>
+          URL da foto
+          <input type="url" formControlName="photoURL" placeholder="https://..." />
+        </label>
+
+        <button type="submit" [disabled]="saving() || !isDirty() || form.invalid">
+          {{ saving() ? 'Salvando...' : 'Salvar perfil' }}
+        </button>
+      </form>
+
+      <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+      <p class="success" *ngIf="successMessage()">{{ successMessage() }}</p>
+    </section>
+  </ng-container>
+</section>

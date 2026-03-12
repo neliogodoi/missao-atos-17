@@ -1,0 +1,78 @@
+.profile-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.profile-card {
+  border: 1px solid var(--stroke);
+  border-radius: 0.9rem;
+  background: var(--surface);
+  padding: 1rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+h3 {
+  margin: 0;
+}
+
+.meta {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.meta p {
+  margin: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.tags {
+  display: inline-flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+}
+
+button {
+  min-height: var(--btn-h-sm);
+  padding: 0 0.85rem;
+  border-radius: 0.65rem;
+  background: var(--gold);
+  color: var(--text);
+  border-color: transparent;
+}
+
+.loading-text {
+  margin: 0;
+  color: var(--muted);
+}
+
+.error,
+.success {
+  margin: 0;
+  border-radius: 0.65rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.error {
+  color: var(--text-on-danger);
+  border: 1px solid var(--danger-border);
+  background: var(--danger-bg);
+}
+
+.success {
+  color: var(--text-on-success);
+  border: 1px solid var(--success-border);
+  background: var(--success-bg);
+}

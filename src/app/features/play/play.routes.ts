@@ -29,6 +29,10 @@ export const PLAY_ROUTES: Routes = [
       {
         path: 'narrativa',
         loadComponent: () => import('./pages/narrative-page/narrative-page').then((m) => m.NarrativePage)
+      },
+      {
+        path: 'perfil',
+        loadComponent: () => import('./pages/profile-page/profile-page').then((m) => m.ProfilePage)
       }
     ]
   }

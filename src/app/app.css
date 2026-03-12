@@ -80,6 +80,10 @@
   font-weight: 700;
 }
 
+.profile-link {
+  text-decoration: none;
+}
+
 .profile-chip img {
   width: 100%;
   height: 100%;

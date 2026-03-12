@@ -29,7 +29,7 @@
         >
           <mat-icon class="material-icons-outlined">admin_panel_settings</mat-icon>
         </a>
-        <div class="profile-chip" title="Usuário logado">
+        <a class="profile-chip profile-link" routerLink="/play/perfil" routerLinkActive="active" title="Meu perfil">
           <img
             *ngIf="profile.photoURL && !profileImageFailed(); else fallbackAvatar"
             [src]="profile.photoURL"
@@ -39,7 +39,7 @@
           <ng-template #fallbackAvatar>
             <span>{{ (profile.displayName.charAt(0) || 'U').toUpperCase() }}</span>
           </ng-template>
-        </div>
+        </a>
         <button type="button" class="icon-btn" (click)="onLogout()" aria-label="Sair" title="Sair">
           <mat-icon class="material-icons-outlined">logout</mat-icon>
         </button>

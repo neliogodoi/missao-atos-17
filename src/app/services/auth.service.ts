@@ -9,7 +9,8 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
-  signOut
+  signOut,
+  updateProfile
 } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { FirebaseError } from 'firebase/app';
@@ -48,10 +49,14 @@ export class AuthService {
     }
   }
 
-  async registerWithEmail(email: string, password: string): Promise<void> {
+  async registerWithEmail(displayName: string, email: string, password: string): Promise<void> {
     try {
       const credential = await createUserWithEmailAndPassword(this.auth, email, password);
-      await this.ensureUserDoc(credential.user);
+      const normalizedName = displayName.trim();
+      if (normalizedName) {
+        await updateProfile(credential.user, { displayName: normalizedName });
+      }
+      await this.ensureUserDoc(credential.user, normalizedName);
     } catch (error: unknown) {
       throw this.mapEmailAuthError(error);
     }
@@ -76,11 +81,11 @@ export class AuthService {
     return this.ensureUserDoc(user);
   }
 
-  private async ensureUserDoc(user: User): Promise<void> {
+  private async ensureUserDoc(user: User, displayNameOverride: string | null = null): Promise<void> {
     const userRef = doc(this.firestore, `users/${user.uid}`);
     const userSnapshot = await getDoc(userRef);
 
-    const displayName = user.displayName ?? '';
+    const displayName = displayNameOverride ?? user.displayName ?? '';
     const photoURL = user.photoURL ?? '';
     const role = 'player' as const;
 

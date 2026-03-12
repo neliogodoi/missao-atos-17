@@ -25,8 +25,13 @@ export class LoginComponent {
   readonly authService = inject(AuthService);
   readonly errorMessage = signal<string | null>(null);
   readonly loading = signal(false);
-  readonly email = signal('');
-  readonly password = signal('');
+  readonly formMode = signal<'login' | 'register'>('login');
+  readonly loginEmail = signal('');
+  readonly loginPassword = signal('');
+  readonly registerName = signal('');
+  readonly registerEmail = signal('');
+  readonly registerPassword = signal('');
+  readonly registerPasswordConfirm = signal('');
 
   constructor() {
     void this.completeRedirectLoginFlow();
@@ -73,8 +78,8 @@ export class LoginComponent {
   }
 
   async onLoginWithEmail(): Promise<void> {
-    const email = this.email().trim();
-    const password = this.password();
+    const email = this.loginEmail().trim();
+    const password = this.loginPassword();
     if (!email || !password) {
       this.errorMessage.set('Preencha email e senha.');
       return;
@@ -97,10 +102,17 @@ export class LoginComponent {
   }
 
   async onRegisterWithEmail(): Promise<void> {
-    const email = this.email().trim();
-    const password = this.password();
-    if (!email || !password) {
-      this.errorMessage.set('Preencha email e senha.');
+    const name = this.registerName().trim();
+    const email = this.registerEmail().trim();
+    const password = this.registerPassword();
+    const passwordConfirm = this.registerPasswordConfirm();
+    if (!name || !email || !password || !passwordConfirm) {
+      this.errorMessage.set('Preencha nome, email, senha e confirmação de senha.');
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      this.errorMessage.set('As senhas não conferem.');
       return;
     }
 
@@ -108,7 +120,7 @@ export class LoginComponent {
     this.loading.set(true);
 
     try {
-      await this.authService.registerWithEmail(email, password);
+      await this.authService.registerWithEmail(name, email, password);
     } catch (error: unknown) {
       void this.authErrorLogger
         .logAuthError(error, 'email-register')
@@ -134,11 +146,32 @@ export class LoginComponent {
   }
 
   onEmailInput(value: string): void {
-    this.email.set(value);
+    this.loginEmail.set(value);
   }
 
   onPasswordInput(value: string): void {
-    this.password.set(value);
+    this.loginPassword.set(value);
+  }
+
+  onRegisterNameInput(value: string): void {
+    this.registerName.set(value);
+  }
+
+  onRegisterEmailInput(value: string): void {
+    this.registerEmail.set(value);
+  }
+
+  onRegisterPasswordInput(value: string): void {
+    this.registerPassword.set(value);
+  }
+
+  onRegisterPasswordConfirmInput(value: string): void {
+    this.registerPasswordConfirm.set(value);
+  }
+
+  setFormMode(mode: 'login' | 'register'): void {
+    this.formMode.set(mode);
+    this.errorMessage.set(null);
   }
 
   private async redirectAuthenticatedUser(user: User): Promise<void> {

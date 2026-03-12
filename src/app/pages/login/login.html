@@ -12,12 +12,33 @@
 
     <div class="divider"><span>ou</span></div>
 
-    <div class="email-auth">
+    <div class="mode-switch">
+      <button
+        type="button"
+        class="btn mode-btn"
+        [class.mode-btn-active]="formMode() === 'login'"
+        (click)="setFormMode('login')"
+        [disabled]="loading()"
+      >
+        Entrar
+      </button>
+      <button
+        type="button"
+        class="btn mode-btn"
+        [class.mode-btn-active]="formMode() === 'register'"
+        (click)="setFormMode('register')"
+        [disabled]="loading()"
+      >
+        Criar conta
+      </button>
+    </div>
+
+    <div class="email-auth" *ngIf="formMode() === 'login'">
       <label class="field">
         <span>Email</span>
         <input
           type="email"
-          [value]="email()"
+          [value]="loginEmail()"
           (input)="onEmailInput($any($event.target).value)"
           [disabled]="loading()"
           autocomplete="email"
@@ -29,22 +50,71 @@
         <span>Senha</span>
         <input
           type="password"
-          [value]="password()"
+          [value]="loginPassword()"
           (input)="onPasswordInput($any($event.target).value)"
           [disabled]="loading()"
           autocomplete="current-password"
+          placeholder="Sua senha"
+        />
+      </label>
+
+      <button class="btn btn-primary email-btn" type="button" (click)="onLoginWithEmail()" [disabled]="loading()">
+        Entrar com Email
+      </button>
+    </div>
+
+    <div class="email-auth" *ngIf="formMode() === 'register'">
+      <label class="field">
+        <span>Nome</span>
+        <input
+          type="text"
+          [value]="registerName()"
+          (input)="onRegisterNameInput($any($event.target).value)"
+          [disabled]="loading()"
+          autocomplete="name"
+          placeholder="Seu nome"
+        />
+      </label>
+
+      <label class="field">
+        <span>Email</span>
+        <input
+          type="email"
+          [value]="registerEmail()"
+          (input)="onRegisterEmailInput($any($event.target).value)"
+          [disabled]="loading()"
+          autocomplete="email"
+          placeholder="seuemail@exemplo.com"
+        />
+      </label>
+
+      <label class="field">
+        <span>Senha</span>
+        <input
+          type="password"
+          [value]="registerPassword()"
+          (input)="onRegisterPasswordInput($any($event.target).value)"
+          [disabled]="loading()"
+          autocomplete="new-password"
           placeholder="Mínimo 6 caracteres"
         />
       </label>
 
-      <div class="email-actions">
-        <button class="btn btn-primary email-btn" type="button" (click)="onLoginWithEmail()" [disabled]="loading()">
-          Entrar com Email
-        </button>
-        <button class="btn btn-secondary email-btn" type="button" (click)="onRegisterWithEmail()" [disabled]="loading()">
-          Criar conta
-        </button>
-      </div>
+      <label class="field">
+        <span>Confirmar senha</span>
+        <input
+          type="password"
+          [value]="registerPasswordConfirm()"
+          (input)="onRegisterPasswordConfirmInput($any($event.target).value)"
+          [disabled]="loading()"
+          autocomplete="new-password"
+          placeholder="Repita sua senha"
+        />
+      </label>
+
+      <button class="btn btn-secondary email-btn" type="button" (click)="onRegisterWithEmail()" [disabled]="loading()">
+        Criar conta com Email
+      </button>
     </div>
 
     <p class="helper">Use Google ou Email/Senha para manter seu progresso seguro.</p>

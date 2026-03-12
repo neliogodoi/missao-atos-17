@@ -229,18 +229,6 @@ export class GameRepository {
           return true;
         }
 
-        const startDateKey = (access.startDateKey ?? '').trim();
-        const endDateKey = (access.endDateKey ?? '').trim();
-        const inRange =
-          startDateKey !== ''
-          && endDateKey !== ''
-          && requestedDateKey >= startDateKey
-          && requestedDateKey <= endDateKey;
-
-        if (inRange) {
-          return true;
-        }
-
         const allowedDateKeys = access.allowedDateKeys ?? [];
         return allowedDateKeys.includes(requestedDateKey);
       })

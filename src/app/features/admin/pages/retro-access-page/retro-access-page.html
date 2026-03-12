@@ -7,6 +7,15 @@
       <input type="text" formControlName="uid" placeholder="UID exato do Firebase Auth" />
     </label>
 
+    <label>
+      UIDs adicionais (opcional)
+      <textarea
+        rows="3"
+        formControlName="bulkUidsText"
+        placeholder="Um por linha, ou separados por vírgula/espaço"
+      ></textarea>
+    </label>
+
     <div class="grid-2">
       <label class="checkbox">
         <input type="checkbox" formControlName="enabled" />
@@ -19,19 +28,8 @@
       </label>
     </div>
 
-    <div class="grid-2">
-      <label>
-        Início permitido (opcional)
-        <input type="date" formControlName="startDateKey" />
-      </label>
-      <label>
-        Fim permitido (opcional)
-        <input type="date" formControlName="endDateKey" />
-      </label>
-    </div>
-
     <label>
-      Datas específicas (opcional)
+      Datas específicas (obrigatório quando "Liberar todo retroativo" estiver desligado)
       <textarea
         rows="3"
         formControlName="allowedDateKeysText"
@@ -63,10 +61,6 @@
         <p class="item-line">
           <span class="item-label">Escopo</span>
           <span class="item-value">{{ access.allowAllRetro ? 'Todos os retroativos' : 'Parcial' }}</span>
-        </p>
-        <p class="item-line" *ngIf="!access.allowAllRetro">
-          <span class="item-label">Intervalo</span>
-          <span class="item-value">{{ access.startDateKey || '-' }} → {{ access.endDateKey || '-' }}</span>
         </p>
         <p class="item-line" *ngIf="!access.allowAllRetro">
           <span class="item-label">Datas</span>

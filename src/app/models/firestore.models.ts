@@ -63,8 +63,6 @@ export interface RetroAccess {
   uid: string;
   enabled: boolean;
   allowAllRetro: boolean;
-  startDateKey?: string;
-  endDateKey?: string;
   allowedDateKeys?: string[];
   note?: string;
   createdAt: string;

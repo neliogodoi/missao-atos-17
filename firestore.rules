@@ -175,8 +175,6 @@ service cloud.firestore {
           'uid',
           'enabled',
           'allowAllRetro',
-          'startDateKey',
-          'endDateKey',
           'allowedDateKeys',
           'note',
           'createdAt',
@@ -185,16 +183,6 @@ service cloud.firestore {
         && request.resource.data.uid == uid
         && request.resource.data.enabled is bool
         && request.resource.data.allowAllRetro is bool
-        && (
-          !('startDateKey' in request.resource.data)
-          || request.resource.data.startDateKey == null
-          || isValidDateKey(request.resource.data.startDateKey)
-        )
-        && (
-          !('endDateKey' in request.resource.data)
-          || request.resource.data.endDateKey == null
-          || isValidDateKey(request.resource.data.endDateKey)
-        )
         && (
           !('allowedDateKeys' in request.resource.data)
           || request.resource.data.allowedDateKeys == null

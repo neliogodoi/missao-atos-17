@@ -26,10 +26,9 @@ export class RetroAccessPage {
 
   readonly form = this.fb.nonNullable.group({
     uid: ['', [Validators.required, Validators.maxLength(128)]],
+    bulkUidsText: [''],
     enabled: [true],
     allowAllRetro: [false],
-    startDateKey: ['', Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)],
-    endDateKey: ['', Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)],
     allowedDateKeysText: [''],
     note: ['', Validators.maxLength(240)]
   });
@@ -45,24 +44,31 @@ export class RetroAccessPage {
 
     const value = this.form.getRawValue();
     const uid = value.uid.trim();
+    const bulkUids = this.parseBulkUids(value.bulkUidsText);
+    const targetUids = Array.from(new Set([uid, ...bulkUids].filter((item) => item.length > 0)));
+    if (targetUids.length === 0) {
+      this.errorMessage.set('Informe pelo menos um UID válido.');
+      this.loading.set(false);
+      return;
+    }
     const now = new Date().toISOString();
     const allowedDateKeys = this.parseAllowedDateKeys(value.allowedDateKeysText);
 
-    const payload: RetroAccess = {
-      uid,
-      enabled: value.enabled,
-      allowAllRetro: value.allowAllRetro,
-      startDateKey: value.startDateKey.trim() || undefined,
-      endDateKey: value.endDateKey.trim() || undefined,
-      allowedDateKeys,
-      note: value.note.trim() || undefined,
-      createdAt: now,
-      updatedAt: now
-    };
-
     try {
       await this.firestoreService.assertCurrentUserIsAdmin();
-      await this.firestoreService.setDoc(`retroAccess/${uid}`, payload);
+      await Promise.all(
+        targetUids.map((targetUid) =>
+          this.firestoreService.setDoc(`retroAccess/${targetUid}`, {
+            uid: targetUid,
+            enabled: value.enabled,
+            allowAllRetro: value.allowAllRetro,
+            allowedDateKeys,
+            note: value.note.trim() || undefined,
+            createdAt: now,
+            updatedAt: now
+          } satisfies RetroAccess)
+        )
+      );
       this.resetForm();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao salvar acesso retroativo.';
@@ -76,10 +82,9 @@ export class RetroAccessPage {
     this.editingUid.set(access.uid);
     this.form.setValue({
       uid: access.uid,
+      bulkUidsText: '',
       enabled: !!access.enabled,
       allowAllRetro: !!access.allowAllRetro,
-      startDateKey: access.startDateKey ?? '',
-      endDateKey: access.endDateKey ?? '',
       allowedDateKeysText: (access.allowedDateKeys ?? []).join(', '),
       note: access.note ?? ''
     });
@@ -110,10 +115,9 @@ export class RetroAccessPage {
     this.editingUid.set(null);
     this.form.reset({
       uid: '',
+      bulkUidsText: '',
       enabled: true,
       allowAllRetro: false,
-      startDateKey: '',
-      endDateKey: '',
       allowedDateKeysText: '',
       note: ''
     });
@@ -125,5 +129,12 @@ export class RetroAccessPage {
       .map((value) => value.trim())
       .filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(value));
     return Array.from(new Set(normalized));
+  }
+
+  private parseBulkUids(input: string): string[] {
+    return input
+      .split(/[\s,;]+/g)
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0 && value.length <= 128);
   }
 }

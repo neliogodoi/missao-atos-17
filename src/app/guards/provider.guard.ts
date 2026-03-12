@@ -3,7 +3,8 @@ import { Auth, authState, signOut } from '@angular/fire/auth';
 import { CanActivateFn, Router } from '@angular/router';
 import { catchError, from, map, of, switchMap, take } from 'rxjs';
 
-const PROVIDER_BLOCK_MESSAGE = 'Apenas login com Google é permitido.';
+const ALLOWED_PROVIDERS = ['google.com', 'password', 'phone'];
+const PROVIDER_BLOCK_MESSAGE = 'Método de login não permitido.';
 
 export const providerGuard: CanActivateFn = () => {
   const auth = inject(Auth);
@@ -16,8 +17,8 @@ export const providerGuard: CanActivateFn = () => {
         return of(router.createUrlTree(['/login']));
       }
 
-      const isGoogleProvider = user.providerData.some((provider) => provider.providerId === 'google.com');
-      if (isGoogleProvider) {
+      const isAllowedProvider = user.providerData.some((provider) => ALLOWED_PROVIDERS.includes(provider.providerId));
+      if (isAllowedProvider) {
         return of(true);
       }
 

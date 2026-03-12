@@ -25,8 +25,12 @@ export class LoginComponent {
   readonly authService = inject(AuthService);
   readonly errorMessage = signal<string | null>(null);
   readonly loading = signal(false);
+  readonly email = signal('');
+  readonly password = signal('');
 
   constructor() {
+    void this.completeRedirectLoginFlow();
+
     this.route.queryParamMap.subscribe((params) => {
       const message = params.get('message');
       if (message) {
@@ -41,7 +45,10 @@ export class LoginComponent {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((user) => {
-        void this.redirectAuthenticatedUser(user).catch(() => {
+        void this.redirectAuthenticatedUser(user).catch((error: unknown) => {
+          void this.authErrorLogger
+            .logAuthError(error, 'post-auth-redirect')
+            .catch((logError) => console.error('Falha ao registrar log de auth:', logError));
           this.errorMessage.set('Não foi possível concluir seu login. Tente novamente.');
           this.loading.set(false);
         });
@@ -55,12 +62,83 @@ export class LoginComponent {
     try {
       await this.authService.loginWithGoogle();
     } catch (error: unknown) {
-      void this.authErrorLogger.logGoogleLoginError(error).catch(() => {});
+      void this.authErrorLogger
+        .logAuthError(error, 'google-login')
+        .catch((logError) => console.error('Falha ao registrar log de auth:', logError));
       const message = error instanceof Error ? error.message : 'Não foi possível entrar com Google.';
       this.errorMessage.set(message);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  async onLoginWithEmail(): Promise<void> {
+    const email = this.email().trim();
+    const password = this.password();
+    if (!email || !password) {
+      this.errorMessage.set('Preencha email e senha.');
+      return;
+    }
+
+    this.errorMessage.set(null);
+    this.loading.set(true);
+
+    try {
+      await this.authService.loginWithEmail(email, password);
+    } catch (error: unknown) {
+      void this.authErrorLogger
+        .logAuthError(error, 'email-login')
+        .catch((logError) => console.error('Falha ao registrar log de auth:', logError));
+      const message = error instanceof Error ? error.message : 'Não foi possível entrar com email e senha.';
+      this.errorMessage.set(message);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async onRegisterWithEmail(): Promise<void> {
+    const email = this.email().trim();
+    const password = this.password();
+    if (!email || !password) {
+      this.errorMessage.set('Preencha email e senha.');
+      return;
+    }
+
+    this.errorMessage.set(null);
+    this.loading.set(true);
+
+    try {
+      await this.authService.registerWithEmail(email, password);
+    } catch (error: unknown) {
+      void this.authErrorLogger
+        .logAuthError(error, 'email-register')
+        .catch((logError) => console.error('Falha ao registrar log de auth:', logError));
+      const message = error instanceof Error ? error.message : 'Não foi possível criar conta com email e senha.';
+      this.errorMessage.set(message);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  private async completeRedirectLoginFlow(): Promise<void> {
+    try {
+      await this.authService.completeRedirectLogin();
+    } catch (error: unknown) {
+      void this.authErrorLogger
+        .logAuthError(error, 'google-login-redirect')
+        .catch((logError) => console.error('Falha ao registrar log de auth:', logError));
+      const message = error instanceof Error ? error.message : 'Não foi possível entrar com Google.';
+      this.errorMessage.set(message);
+      this.loading.set(false);
+    }
+  }
+
+  onEmailInput(value: string): void {
+    this.email.set(value);
+  }
+
+  onPasswordInput(value: string): void {
+    this.password.set(value);
   }
 
   private async redirectAuthenticatedUser(user: User): Promise<void> {

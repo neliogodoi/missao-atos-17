@@ -10,7 +10,44 @@
       </button>
     </div>
 
-    <p class="helper">Use sua conta Google para manter seu progresso seguro.</p>
+    <div class="divider"><span>ou</span></div>
+
+    <div class="email-auth">
+      <label class="field">
+        <span>Email</span>
+        <input
+          type="email"
+          [value]="email()"
+          (input)="onEmailInput($any($event.target).value)"
+          [disabled]="loading()"
+          autocomplete="email"
+          placeholder="seuemail@exemplo.com"
+        />
+      </label>
+
+      <label class="field">
+        <span>Senha</span>
+        <input
+          type="password"
+          [value]="password()"
+          (input)="onPasswordInput($any($event.target).value)"
+          [disabled]="loading()"
+          autocomplete="current-password"
+          placeholder="Mínimo 6 caracteres"
+        />
+      </label>
+
+      <div class="email-actions">
+        <button class="btn btn-primary email-btn" type="button" (click)="onLoginWithEmail()" [disabled]="loading()">
+          Entrar com Email
+        </button>
+        <button class="btn btn-secondary email-btn" type="button" (click)="onRegisterWithEmail()" [disabled]="loading()">
+          Criar conta
+        </button>
+      </div>
+    </div>
+
+    <p class="helper">Use Google ou Email/Senha para manter seu progresso seguro.</p>
     <p class="helper">Acesso liberado apenas para jogadores autorizados da missão.</p>
 
     <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>

@@ -179,7 +179,13 @@ service cloud.firestore {
           'authUid',
           'createdAt'
         ])
-        && request.resource.data.context == 'google-login'
+        && request.resource.data.context in [
+          'google-login',
+          'google-login-redirect',
+          'post-auth-redirect',
+          'email-login',
+          'email-register'
+        ]
         && request.resource.data.errorCode is string
         && request.resource.data.errorCode.size() > 0
         && request.resource.data.errorCode.size() <= 120

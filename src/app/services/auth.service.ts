@@ -4,6 +4,9 @@ import {
   GoogleAuthProvider,
   User,
   authState,
+  createUserWithEmailAndPassword,
+  getRedirectResult,
+  signInWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
   signOut
@@ -36,8 +39,37 @@ export class AuthService {
     }
   }
 
+  async loginWithEmail(email: string, password: string): Promise<void> {
+    try {
+      const credential = await signInWithEmailAndPassword(this.auth, email, password);
+      await this.ensureUserDoc(credential.user);
+    } catch (error: unknown) {
+      throw this.mapEmailAuthError(error);
+    }
+  }
+
+  async registerWithEmail(email: string, password: string): Promise<void> {
+    try {
+      const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+      await this.ensureUserDoc(credential.user);
+    } catch (error: unknown) {
+      throw this.mapEmailAuthError(error);
+    }
+  }
+
   logout(): Promise<void> {
     return signOut(this.auth);
+  }
+
+  async completeRedirectLogin(): Promise<void> {
+    try {
+      const credential = await getRedirectResult(this.auth);
+      if (credential?.user) {
+        await this.ensureUserDoc(credential.user);
+      }
+    } catch (error: unknown) {
+      throw this.mapGoogleLoginError(error);
+    }
   }
 
   ensureUserProfile(user: User): Promise<void> {
@@ -66,17 +98,56 @@ export class AuthService {
       return new Error('Não foi possível entrar com Google. Tente novamente.');
     }
 
-    switch (error.code) {
+    const mapped = new Error(this.mapGoogleLoginMessage(error.code)) as Error & { code?: string };
+    mapped.code = error.code;
+    return mapped;
+  }
+
+  private mapEmailAuthError(error: unknown): Error {
+    if (!(error instanceof FirebaseError)) {
+      return new Error('Não foi possível autenticar com email e senha. Tente novamente.');
+    }
+
+    const mapped = new Error(this.mapEmailAuthMessage(error.code)) as Error & { code?: string };
+    mapped.code = error.code;
+    return mapped;
+  }
+
+  private mapGoogleLoginMessage(errorCode: string): string {
+    switch (errorCode) {
       case 'auth/popup-closed-by-user':
-        return new Error('Login cancelado: a janela de autenticação foi fechada.');
+        return 'Login cancelado: a janela de autenticação foi fechada.';
       case 'auth/popup-blocked':
-        return new Error('O navegador bloqueou o popup. Permita popups e tente novamente.');
+        return 'O navegador bloqueou o popup. Permita popups e tente novamente.';
       case 'auth/cancelled-popup-request':
-        return new Error('Solicitação de login cancelada. Tente novamente.');
+        return 'Solicitação de login cancelada. Tente novamente.';
       case 'auth/network-request-failed':
-        return new Error('Falha de rede ao autenticar. Verifique sua conexão e tente novamente.');
+        return 'Falha de rede ao autenticar. Verifique sua conexão e tente novamente.';
+      case 'auth/unauthorized-domain':
+        return 'Domínio não autorizado no Firebase Auth para login com Google.';
       default:
-        return new Error('Não foi possível entrar com Google. Tente novamente.');
+        return 'Não foi possível entrar com Google. Tente novamente.';
+    }
+  }
+
+  private mapEmailAuthMessage(errorCode: string): string {
+    switch (errorCode) {
+      case 'auth/invalid-email':
+        return 'Email inválido.';
+      case 'auth/invalid-credential':
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+        return 'Email ou senha inválidos.';
+      case 'auth/email-already-in-use':
+        return 'Este email já está em uso.';
+      case 'auth/weak-password':
+        return 'A senha deve ter no mínimo 6 caracteres.';
+      case 'auth/too-many-requests':
+        return 'Muitas tentativas. Aguarde e tente novamente.';
+      case 'auth/network-request-failed':
+        return 'Falha de rede ao autenticar. Verifique sua conexão e tente novamente.';
+      default:
+        return 'Não foi possível autenticar com email e senha. Tente novamente.';
     }
   }
 

@@ -10,12 +10,12 @@ export class AuthErrorLoggerService {
   private readonly firestore = inject(Firestore);
   private readonly auth = inject(Auth);
 
-  async logGoogleLoginError(error: unknown): Promise<void> {
+  async logAuthError(error: unknown, context: string = 'google-login'): Promise<void> {
     const code = this.extractCode(error);
     const message = this.extractMessage(error);
 
     await addDoc(collection(this.firestore, 'authClientLogs'), {
-      context: 'google-login',
+      context: context.slice(0, 64),
       errorCode: code,
       errorMessage: message.slice(0, 500),
       host: window.location.host.slice(0, 255),
@@ -48,6 +48,6 @@ export class AuthErrorLoggerService {
       return error;
     }
 
-    return 'Erro desconhecido no login Google';
+    return 'Erro desconhecido de autenticação';
   }
 }

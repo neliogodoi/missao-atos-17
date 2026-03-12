@@ -19,8 +19,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return signedIn()
-        && currentUserDoc().exists()
-        && currentUserDoc().data.role == 'admin';
+        && request.auth.uid == 'NCypyhtWyKfR71Iws1phDOa0eVi2';
     }
 
     function isValidDateKey(value) {

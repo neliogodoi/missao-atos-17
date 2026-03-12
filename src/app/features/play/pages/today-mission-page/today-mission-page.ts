@@ -289,7 +289,7 @@ export class TodayMissionPage {
           return this.gameRepository.canAccessMissionDate$(user.uid, targetDateKey, this.todayDateKey).pipe(
             switchMap((hasAccess) => {
               if (!hasAccess) {
-                return throwError(() => new Error('Acesso retroativo não liberado para esta data.'));
+                return throwError(() => new Error('Você não tem permissão para revisar este dia!'));
               }
               return this.gameRepository.getMissionByDateKey(targetDateKey);
             }),

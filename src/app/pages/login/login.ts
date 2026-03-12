@@ -180,7 +180,8 @@ export class LoginComponent {
     const userRef = doc(this.firestore, `users/${user.uid}`);
     const userSnapshot = await getDoc(userRef);
     const role = userSnapshot.data()?.['role'];
+    const normalizedRole = typeof role === 'string' ? role.trim().toLowerCase() : '';
 
-    await this.router.navigateByUrl(role === 'admin' ? '/admin' : '/play');
+    await this.router.navigateByUrl(normalizedRole === 'admin' ? '/admin' : '/play');
   }
 }

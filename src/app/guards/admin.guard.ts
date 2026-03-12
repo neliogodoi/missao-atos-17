@@ -19,7 +19,8 @@ export const adminGuard: CanActivateFn = () => {
       return from(getDoc(doc(firestore, `users/${user.uid}`))).pipe(
         map((snapshot) => {
           const role = snapshot.data()?.['role'];
-          return role === 'admin' ? true : router.createUrlTree(['/play']);
+          const normalizedRole = typeof role === 'string' ? role.trim().toLowerCase() : '';
+          return normalizedRole === 'admin' ? true : router.createUrlTree(['/play']);
         })
       );
     })

@@ -40,12 +40,12 @@ export class App {
         '';
 
       return this.firestoreService
-        .doc$<{ displayName?: string; photoURL?: string; role?: 'admin' | 'player' }>(`users/${user.uid}`)
+        .doc$<{ displayName?: string; photoURL?: string; role?: string }>(`users/${user.uid}`)
         .pipe(
         map((userDoc) => ({
           displayName: userDoc?.displayName || user.displayName || 'Usuário',
           photoURL: userDoc?.photoURL || user.photoURL || providerPhoto || '',
-          role: userDoc?.role === 'admin' ? 'admin' : 'player'
+          role: this.normalizeRole(userDoc?.role) === 'admin' ? 'admin' : 'player'
         })),
         catchError(() =>
           of({
@@ -66,5 +66,11 @@ export class App {
   async onLogout(): Promise<void> {
     await this.authService.logout();
     await this.router.navigateByUrl('/login');
+  }
+
+  private normalizeRole(role: unknown): 'admin' | 'player' {
+    return typeof role === 'string' && role.trim().toLowerCase() === 'admin'
+      ? 'admin'
+      : 'player';
   }
 }

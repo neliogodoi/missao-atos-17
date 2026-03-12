@@ -395,7 +395,9 @@ export class GameRepository {
   }
 
   private parseUserRole(value: unknown): UserRole {
-    return value === 'admin' ? 'admin' : 'player';
+    return typeof value === 'string' && value.trim().toLowerCase() === 'admin'
+      ? 'admin'
+      : 'player';
   }
 
   private parseUserStats(

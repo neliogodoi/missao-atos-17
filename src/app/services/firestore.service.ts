@@ -91,8 +91,9 @@ export class FirestoreService {
       ? serverSnap.value
       : (fallbackSnap.status === 'fulfilled' ? fallbackSnap.value : null);
     const role = snapshot?.data()?.['role'];
+    const normalizedRole = typeof role === 'string' ? role.trim().toLowerCase() : '';
 
-    if (role !== 'admin') {
+    if (normalizedRole !== 'admin') {
       throw new Error(`Permissão de admin ausente para UID ${user.uid}. role atual: ${String(role ?? 'undefined')}.`);
     }
   }

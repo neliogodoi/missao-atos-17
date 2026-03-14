@@ -274,16 +274,11 @@ export class GameRepository {
         : null;
       const previousTotalXp = previousStats?.totalXp ?? 0;
       const previousStreak = previousStats?.streak ?? 0;
-      const previousLastAnswerDateKey = previousStats?.lastAnswerDateKey ?? '';
       const role = this.parseUserRole((userSnap.data() as Record<string, unknown>)['role']);
       const displayName = this.parseString((userSnap.data() as Record<string, unknown>)['displayName']);
       const photoURL = this.parseString((userSnap.data() as Record<string, unknown>)['photoURL']);
 
-      const streak =
-        previousLastAnswerDateKey &&
-        this.gameScoringService.getYesterdayDateKey(mission.dateKey) === previousLastAnswerDateKey
-          ? previousStreak + 1
-          : 1;
+      const streak = previousStreak + 1;
 
       const byMissionPayload: {
         missionId: string;
@@ -317,20 +312,25 @@ export class GameRepository {
 
       transaction.set(byMissionRef, byMissionPayload);
       transaction.set(byDateRef, byDatePayload);
-      transaction.set(
-        userStatsRef,
-        {
-          userId: uid,
-          role,
-          displayName,
-          photoURL,
+      if (userStatsSnap.exists()) {
+        transaction.update(userStatsRef, {
           totalXp: previousTotalXp + xpEarned,
           streak,
           lastAnswerDateKey: mission.dateKey,
           updatedAt: serverTimestamp()
-        },
-        { merge: true }
-      );
+        });
+      } else {
+        transaction.set(userStatsRef, {
+          userId: uid,
+          role,
+          displayName,
+          photoURL,
+          totalXp: xpEarned,
+          streak: 1,
+          lastAnswerDateKey: mission.dateKey,
+          updatedAt: serverTimestamp()
+        });
+      }
     });
   }
 
@@ -402,20 +402,23 @@ export class GameRepository {
       }
 
       if (xpDelta !== 0 || !userStatsSnap.exists()) {
-        transaction.set(
-          userStatsRef,
-          {
+        if (userStatsSnap.exists()) {
+          transaction.update(userStatsRef, {
+            totalXp: Math.max(0, currentTotalXp + xpDelta),
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          transaction.set(userStatsRef, {
             userId: uid,
             role,
             displayName,
             photoURL,
-            totalXp: Math.max(0, currentTotalXp + xpDelta),
-            streak: previousStats?.streak ?? 0,
-            lastAnswerDateKey: previousStats?.lastAnswerDateKey ?? currentDateKey,
+            totalXp: Math.max(0, xpDelta),
+            streak: 0,
+            lastAnswerDateKey: currentDateKey,
             updatedAt: serverTimestamp()
-          },
-          { merge: true }
-        );
+          });
+        }
       }
     });
   }

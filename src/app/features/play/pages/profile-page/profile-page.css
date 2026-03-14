@@ -81,8 +81,13 @@
 
 .armor-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(150px, 180px);
   gap: 0.65rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.25rem;
+  scroll-snap-type: x proximity;
 }
 
 .armor-item {
@@ -92,6 +97,7 @@
   position: relative;
   overflow: hidden;
   min-height: 150px;
+  scroll-snap-align: start;
 }
 
 .armor-item img {
@@ -232,5 +238,9 @@
   .armor-overlay {
     opacity: 1;
     transform: none;
+  }
+
+  .armor-list {
+    grid-auto-columns: minmax(140px, 160px);
   }
 }

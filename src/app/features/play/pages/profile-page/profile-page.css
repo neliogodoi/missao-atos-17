@@ -45,7 +45,8 @@
   gap: 0.65rem;
 }
 
-.armor-progress h4 {
+.armor-progress h4,
+.history-progress h4 {
   margin: 0;
   color: var(--text);
 }
@@ -134,6 +135,42 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--success), color-mix(in srgb, var(--success) 65%, white 35%));
+}
+
+.history-progress {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.history-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.history-list li {
+  border: 1px solid var(--stroke);
+  border-radius: 0.6rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  text-transform: lowercase;
+  background: var(--surface-soft);
+}
+
+.history-list li strong {
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
 }
 
 .loading-text {

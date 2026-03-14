@@ -25,6 +25,11 @@ interface ArmorProgressVm {
   progressPercent: number;
 }
 
+interface ProfileHistoryDayVm {
+  dateKey: string;
+  label: string;
+}
+
 const FORGE_ITEMS: ForgeItemName[] = ['Capacete', 'Peitoral', 'Cinto', 'Sandalias', 'Escudo', 'Espada'];
 const ITEM_TARGET = 5;
 const FORGE_ITEM_IMAGE_MAP: Record<ForgeItemName, string> = {
@@ -54,6 +59,7 @@ export class ProfilePage {
   readonly streak = signal(0);
   readonly initialDisplayName = signal('');
   readonly armorProgress = signal<ArmorProgressVm[]>([]);
+  readonly historyDays = signal<ProfileHistoryDayVm[]>([]);
 
   readonly profileVm$ = this.authService.user$.pipe(
     switchMap((user) => {
@@ -116,6 +122,7 @@ export class ProfilePage {
       };
     });
     this.armorProgress.set(progress);
+    this.historyDays.set(this.buildParticipationHistory(answers));
   }
 
   private computeItemParticipations(answers: UserAnswer[], acts: Season[]): Record<ForgeItemName, number> {
@@ -187,5 +194,28 @@ export class ProfilePage {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private buildParticipationHistory(answers: UserAnswer[]): ProfileHistoryDayVm[] {
+    const uniqueDateKeys = Array.from(new Set(answers.map((answer) => answer.dateKey)))
+      .sort((a, b) => b.localeCompare(a))
+      .slice(0, 5);
+
+    return uniqueDateKeys.map((dateKey) => ({
+      dateKey,
+      label: this.formatDateKeyForUi(dateKey)
+    }));
+  }
+
+  private formatDateKeyForUi(dateKey: string): string {
+    const date = new Date(`${dateKey}T00:00:00`);
+    if (Number.isNaN(date.getTime())) {
+      return dateKey;
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit'
+    }).format(date);
   }
 }

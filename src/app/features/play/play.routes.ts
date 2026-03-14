@@ -15,10 +15,6 @@ export const PLAY_ROUTES: Routes = [
         loadComponent: () => import('./pages/today-mission-page/today-mission-page').then((m) => m.TodayMissionPage)
       },
       {
-        path: 'journey',
-        loadComponent: () => import('./pages/journey-page/journey-page').then((m) => m.JourneyPage)
-      },
-      {
         path: 'ranking',
         loadComponent: () => import('./pages/leaderboard-page/leaderboard-page').then((m) => m.LeaderboardPage)
       },

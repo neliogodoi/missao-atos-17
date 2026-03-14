@@ -13,10 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
           <a routerLink="today" routerLinkActive="active" title="Today Mission" aria-label="Today Mission">
             <mat-icon class="material-icons-outlined">today</mat-icon>
           </a>
-          <a routerLink="journey" routerLinkActive="active" title="Journey" aria-label="Journey">
-            <mat-icon class="material-icons-outlined">explore</mat-icon>
-          </a>
-          <a routerLink="armor" routerLinkActive="active" title="Armor" aria-label="Armor">
+          <a routerLink="perfil" routerLinkActive="active" title="Perfil" aria-label="Perfil">
             <mat-icon class="material-icons-outlined">shield</mat-icon>
           </a>
           <a routerLink="leaderboard" routerLinkActive="active" title="Leaderboard" aria-label="Leaderboard">

@@ -32,6 +32,17 @@
         </div>
       </section>
 
+      <section class="history-progress">
+        <h4>Histórico de Participações</h4>
+        <p class="history-empty" *ngIf="historyDays().length === 0">Nenhuma participação registrada ainda.</p>
+        <ul class="history-list" *ngIf="historyDays().length > 0">
+          <li *ngFor="let day of historyDays()">
+            <span>{{ day.label }}</span>
+            <strong>participou</strong>
+          </li>
+        </ul>
+      </section>
+
       <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
     </section>
   </ng-container>

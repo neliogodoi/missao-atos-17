@@ -3,7 +3,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { limit, orderBy, query, where } from '@angular/fire/firestore';
-import { combineLatest, map, of, switchMap } from 'rxjs';
+import { combineLatest, catchError, map, of, switchMap } from 'rxjs';
 
 import { PrayerMessage, UserStats } from '../../../../models/firestore.models';
 import { AuthService } from '../../../../services/auth.service';
@@ -72,8 +72,13 @@ export class PrayersPage {
         return of([] as PrayerMessage[]);
       }
       return this.firestoreService.col$<PrayerMessage>('prayers', (ref) =>
-        query(ref, where('recipientUid', '==', user.uid), orderBy('createdAt', 'desc'), limit(80))
+        query(ref, where('recipientUid', '==', user.uid), limit(120))
       );
+    }),
+    map((items) => this.sortByCreatedAtDesc(items).slice(0, 80)),
+    catchError(() => {
+      this.errorMessage.set('Não foi possível carregar as orações recebidas agora.');
+      return of([] as PrayerMessage[]);
     })
   );
 
@@ -83,8 +88,13 @@ export class PrayersPage {
         return of([] as PrayerMessage[]);
       }
       return this.firestoreService.col$<PrayerMessage>('prayers', (ref) =>
-        query(ref, where('senderUid', '==', user.uid), orderBy('createdAt', 'desc'), limit(80))
+        query(ref, where('senderUid', '==', user.uid), limit(120))
       );
+    }),
+    map((items) => this.sortByCreatedAtDesc(items).slice(0, 80)),
+    catchError(() => {
+      this.errorMessage.set('Não foi possível carregar as orações enviadas agora.');
+      return of([] as PrayerMessage[]);
     })
   );
 
@@ -179,5 +189,19 @@ export class PrayersPage {
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .trim();
+  }
+
+  private sortByCreatedAtDesc(items: PrayerMessage[]): PrayerMessage[] {
+    return [...items].sort((a, b) => this.toMillis(b.createdAt) - this.toMillis(a.createdAt));
+  }
+
+  private toMillis(value: PrayerMessage['createdAt']): number {
+    if (typeof value === 'string') {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+    }
+
+    const date = value?.toDate?.();
+    return date ? date.getTime() : 0;
   }
 }

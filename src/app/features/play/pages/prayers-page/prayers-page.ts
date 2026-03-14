@@ -37,6 +37,7 @@ export class PrayersPage {
   readonly senderName = signal<string>('');
   readonly recipientSearch = signal('');
   readonly selectedRecipient = signal<PrayerRecipientVm | null>(null);
+  readonly recipientListExpanded = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     anonymous: [true],
@@ -152,6 +153,7 @@ export class PrayersPage {
       });
       this.form.reset({ anonymous: true, message: '' });
       this.recipientSearch.set('');
+      this.recipientListExpanded.set(false);
       this.selectedRecipient.set(null);
       this.toastService.show('Oração enviada com sucesso.', 'success');
     } catch (error: unknown) {
@@ -180,10 +182,13 @@ export class PrayersPage {
 
   onRecipientSearch(value: string): void {
     this.recipientSearch.set(value);
+    this.recipientListExpanded.set(value.trim().length > 0);
   }
 
   onSelectRecipient(recipient: PrayerRecipientVm): void {
     this.selectedRecipient.set(recipient);
+    this.recipientSearch.set('');
+    this.recipientListExpanded.set(false);
   }
 
   clearSelectedRecipient(): void {

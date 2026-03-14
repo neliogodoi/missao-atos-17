@@ -17,20 +17,25 @@
           <button type="button" class="btn-clear" (click)="clearSelectedRecipient()">Trocar</button>
         </div>
 
-        <div class="recipient-list" *ngIf="recipients$ | async as recipients">
-          <button
-            type="button"
-            class="recipient-item"
-            *ngFor="let recipient of recipients"
-            (click)="onSelectRecipient(recipient)"
-          >
-            <img *ngIf="recipient.photoURL; else fallbackAvatar" [src]="recipient.photoURL" [alt]="recipient.displayName" />
-            <ng-template #fallbackAvatar>
-              <span class="avatar-fallback">{{ recipient.displayName.charAt(0).toUpperCase() }}</span>
-            </ng-template>
-            <span>{{ recipient.displayName }}</span>
-          </button>
-        </div>
+        <p class="recipient-hint" *ngIf="!recipientListExpanded()">Digite para buscar um colega.</p>
+
+        <ng-container *ngIf="recipientListExpanded()">
+          <div class="recipient-list" *ngIf="recipients$ | async as recipients">
+            <p class="recipient-hint" *ngIf="recipients.length === 0">Nenhum colega encontrado.</p>
+            <button
+              type="button"
+              class="recipient-item"
+              *ngFor="let recipient of recipients"
+              (click)="onSelectRecipient(recipient)"
+            >
+              <img *ngIf="recipient.photoURL; else fallbackAvatar" [src]="recipient.photoURL" [alt]="recipient.displayName" />
+              <ng-template #fallbackAvatar>
+                <span class="avatar-fallback">{{ recipient.displayName.charAt(0).toUpperCase() }}</span>
+              </ng-template>
+              <span>{{ recipient.displayName }}</span>
+            </button>
+          </div>
+        </ng-container>
 
         <label>
           Sua oração

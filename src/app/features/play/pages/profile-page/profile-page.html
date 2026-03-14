@@ -61,7 +61,10 @@
         </ul>
       </section>
 
-      <button type="button" class="logout-btn" (click)="onLogout()">Sair</button>
+      <div class="profile-actions">
+        <button type="button" class="help-btn" (click)="onOpenHelp()">Ajuda</button>
+        <button type="button" class="logout-btn" (click)="onLogout()">Sair</button>
+      </div>
 
       <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
     </section>

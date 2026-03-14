@@ -276,4 +276,8 @@ export class ProfilePage {
     await this.authService.logout();
     await this.router.navigateByUrl('/login');
   }
+
+  async onOpenHelp(): Promise<void> {
+    await this.router.navigateByUrl('/play/regras');
+  }
 }

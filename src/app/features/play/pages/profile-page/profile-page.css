@@ -216,11 +216,27 @@
   color: var(--muted);
 }
 
+.profile-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.help-btn,
 .logout-btn {
   min-height: var(--btn-h-sm);
-  width: fit-content;
   padding: 0 0.95rem;
   border-radius: 0.65rem;
+  width: fit-content;
+}
+
+.help-btn {
+  border: 1px solid var(--stroke);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.logout-btn {
   border: 1px solid color-mix(in srgb, var(--danger-border) 75%, var(--stroke) 25%);
   background: color-mix(in srgb, var(--danger-bg) 65%, var(--surface) 35%);
   color: var(--text-on-danger);

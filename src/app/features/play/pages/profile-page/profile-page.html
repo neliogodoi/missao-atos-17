@@ -4,6 +4,19 @@
   <ng-container *ngIf="!loading()">
     <section class="profile-card">
       <p class="profile-label">Perfil do Jogador</p>
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <img
+            *ngIf="profilePhotoURL() && !profileImageFailed(); else profileFallbackAvatar"
+            [src]="profilePhotoURL()"
+            [alt]="initialDisplayName() || 'Usuário'"
+            (error)="onProfileImageError()"
+          />
+          <ng-template #profileFallbackAvatar>
+            <span>{{ (initialDisplayName().charAt(0) || 'U').toUpperCase() }}</span>
+          </ng-template>
+        </div>
+      </div>
       <h2 class="epic-name">{{ initialDisplayName() || 'Guerreiro(a)' }}</h2>
 
       <div class="tags">
@@ -42,6 +55,8 @@
           </li>
         </ul>
       </section>
+
+      <button type="button" class="logout-btn" (click)="onLogout()">Sair</button>
 
       <p class="error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
     </section>

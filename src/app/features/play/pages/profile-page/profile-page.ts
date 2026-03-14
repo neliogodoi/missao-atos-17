@@ -1,6 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { combineLatest, firstValueFrom, map, of, switchMap, take } from 'rxjs';
 
 import { Season, UserAnswer, UserStats } from '../../../../models/firestore.models';
@@ -50,6 +51,7 @@ const FORGE_ITEM_IMAGE_MAP: Record<ForgeItemName, string> = {
 export class ProfilePage {
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly firestoreService = inject(FirestoreService);
   private readonly gameRepository = inject(GameRepository);
 
@@ -58,6 +60,8 @@ export class ProfilePage {
   readonly totalXp = signal(0);
   readonly streak = signal(0);
   readonly initialDisplayName = signal('');
+  readonly profilePhotoURL = signal('');
+  readonly profileImageFailed = signal(false);
   readonly armorProgress = signal<ArmorProgressVm[]>([]);
   readonly historyDays = signal<ProfileHistoryDayVm[]>([]);
 
@@ -75,6 +79,7 @@ export class ProfilePage {
         map(([profileDoc, stats]) => ({
           uid,
           displayName: profileDoc?.displayName || user.displayName || '',
+          photoURL: profileDoc?.photoURL || user.photoURL || '',
           totalXp: stats?.totalXp ?? 0,
           streak: stats?.streak ?? 0
         }))
@@ -95,6 +100,8 @@ export class ProfilePage {
           this.totalXp.set(vm.totalXp);
           this.streak.set(vm.streak);
           this.initialDisplayName.set(vm.displayName);
+          this.profilePhotoURL.set(vm.photoURL);
+          this.profileImageFailed.set(false);
           void this.loadArmorProgress(vm.uid);
           this.loading.set(false);
         },
@@ -217,5 +224,14 @@ export class ProfilePage {
       day: '2-digit',
       month: '2-digit'
     }).format(date);
+  }
+
+  onProfileImageError(): void {
+    this.profileImageFailed.set(true);
+  }
+
+  async onLogout(): Promise<void> {
+    await this.authService.logout();
+    await this.router.navigateByUrl('/login');
   }
 }

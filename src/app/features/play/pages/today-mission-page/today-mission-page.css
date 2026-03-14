@@ -16,6 +16,14 @@
   display: grid;
   gap: 0.35rem;
   color: var(--muted);
+  min-width: 0;
+}
+
+.date-filter input[type='date'] {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .date-filter small {

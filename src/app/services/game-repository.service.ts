@@ -274,11 +274,16 @@ export class GameRepository {
         : null;
       const previousTotalXp = previousStats?.totalXp ?? 0;
       const previousStreak = previousStats?.streak ?? 0;
+      const previousLastAnswerDateKey = previousStats?.lastAnswerDateKey ?? '';
       const role = this.parseUserRole((userSnap.data() as Record<string, unknown>)['role']);
       const displayName = this.parseString((userSnap.data() as Record<string, unknown>)['displayName']);
       const photoURL = this.parseString((userSnap.data() as Record<string, unknown>)['photoURL']);
 
-      const streak = previousStreak + 1;
+      const { nextStreak, nextLastAnswerDateKey } = this.computeStreakAfterAnswer({
+        previousStreak,
+        previousLastAnswerDateKey,
+        missionDateKey: mission.dateKey
+      });
 
       const byMissionPayload: {
         missionId: string;
@@ -315,8 +320,8 @@ export class GameRepository {
       if (userStatsSnap.exists()) {
         transaction.update(userStatsRef, {
           totalXp: previousTotalXp + xpEarned,
-          streak,
-          lastAnswerDateKey: mission.dateKey,
+          streak: nextStreak,
+          lastAnswerDateKey: nextLastAnswerDateKey,
           updatedAt: serverTimestamp()
         });
       } else {
@@ -440,6 +445,46 @@ export class GameRepository {
     const streak = typeof value['streak'] === 'number' ? Math.max(0, value['streak']) : 0;
     const lastAnswerDateKey = this.parseString(value['lastAnswerDateKey']);
     return { totalXp, streak, lastAnswerDateKey };
+  }
+
+  private computeStreakAfterAnswer(args: {
+    previousStreak: number;
+    previousLastAnswerDateKey: string;
+    missionDateKey: string;
+  }): { nextStreak: number; nextLastAnswerDateKey: string } {
+    const { previousStreak, previousLastAnswerDateKey, missionDateKey } = args;
+
+    if (!previousLastAnswerDateKey) {
+      return { nextStreak: 1, nextLastAnswerDateKey: missionDateKey };
+    }
+
+    if (missionDateKey < previousLastAnswerDateKey) {
+      // Retro answer should not reset or increment the current streak chain.
+      return {
+        nextStreak: previousStreak,
+        nextLastAnswerDateKey: previousLastAnswerDateKey
+      };
+    }
+
+    if (missionDateKey === previousLastAnswerDateKey) {
+      return {
+        nextStreak: previousStreak,
+        nextLastAnswerDateKey: previousLastAnswerDateKey
+      };
+    }
+
+    const yesterdayOfMission = this.gameScoringService.getYesterdayDateKey(missionDateKey);
+    if (yesterdayOfMission === previousLastAnswerDateKey) {
+      return {
+        nextStreak: previousStreak + 1,
+        nextLastAnswerDateKey: missionDateKey
+      };
+    }
+
+    return {
+      nextStreak: 1,
+      nextLastAnswerDateKey: missionDateKey
+    };
   }
 
   listUserAnswersInRange(uid: string, startDateKey: string, endDateKey: string): Observable<UserAnswer[]> {

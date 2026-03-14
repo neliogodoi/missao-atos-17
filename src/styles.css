@@ -260,6 +260,13 @@ select {
 	min-height: var(--btn-h-md);
 }
 
+input[type='date'] {
+	width: 100%;
+	inline-size: 100%;
+	max-inline-size: 100%;
+	min-inline-size: 0;
+}
+
 textarea {
 	min-height: 6.5rem;
 	resize: vertical;

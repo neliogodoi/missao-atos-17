@@ -107,6 +107,10 @@
   display: block;
 }
 
+.armor-item.unworked img {
+  filter: grayscale(1);
+}
+
 .armor-overlay {
   position: absolute;
   inset: 0;

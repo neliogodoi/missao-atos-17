@@ -27,7 +27,7 @@
       <section class="armor-progress">
         <h4>Forja</h4>
         <div class="armor-list">
-          <article class="armor-item" *ngFor="let item of armorProgress()" tabindex="0">
+          <article class="armor-item" [class.unworked]="item.earned === 0" *ngFor="let item of armorProgress()" tabindex="0">
             <img [src]="item.imageSrc" [alt]="item.itemName" />
             <div class="armor-overlay">
               <div class="armor-content">

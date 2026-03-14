@@ -34,10 +34,12 @@ export class PrayersPage {
   readonly sending = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly uid = signal<string | null>(null);
+  readonly senderName = signal<string>('');
   readonly recipientSearch = signal('');
   readonly selectedRecipient = signal<PrayerRecipientVm | null>(null);
 
   readonly form = this.fb.nonNullable.group({
+    anonymous: [true],
     message: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(1000)]]
   });
 
@@ -104,6 +106,7 @@ export class PrayersPage {
       .subscribe({
         next: (user) => {
           this.uid.set(user?.uid ?? null);
+          this.senderName.set((user?.displayName || '').trim());
           this.loading.set(false);
         }
       });
@@ -120,9 +123,11 @@ export class PrayersPage {
 
     const value = this.form.getRawValue();
     const recipient = this.selectedRecipient();
+    const anonymous = value.anonymous;
     const message = value.message.trim();
     const senderUid = this.uid()!;
     const recipientUid = recipient?.uid ?? '';
+    const senderName = this.senderName() || senderUid;
 
     if (!recipientUid) {
       this.errorMessage.set('Selecione um colega para receber a oração.');
@@ -140,11 +145,12 @@ export class PrayersPage {
       await this.firestoreService.addDoc('prayers', {
         senderUid,
         recipientUid,
-        anonymous: true,
+        anonymous,
+        senderName: anonymous ? '' : senderName,
         message,
         createdAt: new Date().toISOString()
       });
-      this.form.reset({ message: '' });
+      this.form.reset({ anonymous: true, message: '' });
       this.recipientSearch.set('');
       this.selectedRecipient.set(null);
       this.toastService.show('Oração enviada com sucesso.', 'success');
@@ -208,5 +214,14 @@ export class PrayersPage {
 
   isAnonymous(prayer: PrayerMessage): boolean {
     return prayer.anonymous !== false;
+  }
+
+  senderLabel(prayer: PrayerMessage): string {
+    if (this.isAnonymous(prayer)) {
+      return 'Anônimo';
+    }
+
+    const name = (prayer.senderName || '').trim();
+    return name.length > 0 ? name : prayer.senderUid;
   }
 }

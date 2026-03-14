@@ -41,6 +41,11 @@
           ></textarea>
         </label>
 
+        <label class="checkbox-row">
+          <input type="checkbox" formControlName="anonymous" />
+          <span>Enviar como anônima</span>
+        </label>
+
         <button type="submit" [disabled]="sending() || form.invalid || !selectedRecipient()">
           {{ sending() ? 'Enviando...' : 'Enviar oração' }}
         </button>
@@ -54,7 +59,7 @@
           <p class="empty-state" *ngIf="received.length === 0">Nenhuma oração recebida ainda.</p>
           <article class="prayer-item" *ngFor="let prayer of received">
             <p class="message">{{ prayer.message }}</p>
-            <p class="meta">de {{ isAnonymous(prayer) ? 'Anônimo' : prayer.senderUid }} · {{ formatCreatedAt(prayer.createdAt) }}</p>
+            <p class="meta">de {{ senderLabel(prayer) }} · {{ formatCreatedAt(prayer.createdAt) }}</p>
           </article>
         </div>
       </section>

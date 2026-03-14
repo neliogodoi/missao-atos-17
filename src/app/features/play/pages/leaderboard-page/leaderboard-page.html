@@ -8,7 +8,7 @@
         class="avatar"
         *ngIf="user.photoURL; else fallbackAvatar"
         [src]="user.photoURL"
-        [alt]="'Foto de ' + (user.displayName || 'jogador')"
+        [alt]="'Foto de ' + (user.displayName || 'peregrino')"
         loading="lazy"
         referrerpolicy="no-referrer"
       />

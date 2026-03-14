@@ -54,7 +54,7 @@
           <p class="empty-state" *ngIf="received.length === 0">Nenhuma oração recebida ainda.</p>
           <article class="prayer-item" *ngFor="let prayer of received">
             <p class="message">{{ prayer.message }}</p>
-            <p class="meta">de {{ prayer.senderUid }} · {{ formatCreatedAt(prayer.createdAt) }}</p>
+            <p class="meta">de {{ isAnonymous(prayer) ? 'Anônimo' : prayer.senderUid }} · {{ formatCreatedAt(prayer.createdAt) }}</p>
           </article>
         </div>
       </section>
@@ -65,7 +65,7 @@
           <p class="empty-state" *ngIf="sent.length === 0">Você ainda não enviou orações.</p>
           <article class="prayer-item" *ngFor="let prayer of sent">
             <p class="message">{{ prayer.message }}</p>
-            <p class="meta">para {{ prayer.recipientUid }} · {{ formatCreatedAt(prayer.createdAt) }}</p>
+            <p class="meta">para {{ prayer.recipientUid }} · {{ formatCreatedAt(prayer.createdAt) }} · {{ isAnonymous(prayer) ? 'anônima' : 'identificada' }}</p>
           </article>
         </div>
       </section>

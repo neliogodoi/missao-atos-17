@@ -171,6 +171,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'senderUid',
           'recipientUid',
+          'anonymous',
           'message',
           'createdAt'
         ])
@@ -181,6 +182,7 @@ service cloud.firestore {
         && request.resource.data.recipientUid.size() <= 128
         && request.resource.data.recipientUid != request.auth.uid
         && exists(/databases/$(database)/documents/users/$(request.resource.data.recipientUid))
+        && request.resource.data.anonymous is bool
         && request.resource.data.message is string
         && request.resource.data.message.size() >= 10
         && request.resource.data.message.size() <= 1000

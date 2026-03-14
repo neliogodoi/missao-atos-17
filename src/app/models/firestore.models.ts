@@ -72,6 +72,7 @@ export interface RetroAccess {
 export interface PrayerMessage {
   senderUid: string;
   recipientUid: string;
+  anonymous?: boolean;
   message: string;
   createdAt: string | Timestamp;
 }

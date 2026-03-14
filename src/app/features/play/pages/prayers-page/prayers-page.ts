@@ -140,6 +140,7 @@ export class PrayersPage {
       await this.firestoreService.addDoc('prayers', {
         senderUid,
         recipientUid,
+        anonymous: true,
         message,
         createdAt: new Date().toISOString()
       });
@@ -203,5 +204,9 @@ export class PrayersPage {
 
     const date = value?.toDate?.();
     return date ? date.getTime() : 0;
+  }
+
+  isAnonymous(prayer: PrayerMessage): boolean {
+    return prayer.anonymous !== false;
   }
 }

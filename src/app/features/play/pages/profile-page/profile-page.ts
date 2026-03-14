@@ -24,6 +24,7 @@ interface ArmorProgressVm {
   earned: number;
   target: number;
   progressPercent: number;
+  isCurrentWorkItem: boolean;
 }
 
 interface ProfileHistoryDayVm {
@@ -118,6 +119,7 @@ export class ProfilePage {
       combineLatest([this.gameRepository.listUserAnswers(uid), this.gameRepository.listSeasons$()]).pipe(take(1))
     );
     const participationByItem = this.computeItemParticipations(answers, acts);
+    const currentActItem = this.getCurrentActItem(acts);
     const progress = FORGE_ITEMS.map((itemName) => {
       const earned = Math.min(participationByItem[itemName], ITEM_TARGET);
       return {
@@ -125,11 +127,36 @@ export class ProfilePage {
         imageSrc: FORGE_ITEM_IMAGE_MAP[itemName],
         earned,
         target: ITEM_TARGET,
-        progressPercent: Math.round((earned / ITEM_TARGET) * 100)
+        progressPercent: Math.round((earned / ITEM_TARGET) * 100),
+        isCurrentWorkItem: itemName === currentActItem
       };
     });
-    this.armorProgress.set(progress);
+    this.armorProgress.set(this.orderArmorProgress(progress, currentActItem));
     this.historyDays.set(this.buildParticipationHistory(answers));
+  }
+
+  private orderArmorProgress(progress: ArmorProgressVm[], currentActItem: ForgeItemName | null): ArmorProgressVm[] {
+    const currentItem = currentActItem
+      ? (progress.find((item) => item.itemName === currentActItem) ?? null)
+      : null;
+
+    const workedItems = progress
+      .filter((item) => item.itemName !== currentActItem && item.earned > 0)
+      .sort((a, b) =>
+        b.progressPercent - a.progressPercent
+        || b.earned - a.earned
+        || a.itemName.localeCompare(b.itemName, 'pt-BR')
+      );
+
+    const unworkedItems = progress
+      .filter((item) => item.itemName !== currentActItem && item.earned === 0)
+      .sort((a, b) => a.itemName.localeCompare(b.itemName, 'pt-BR'));
+
+    return [
+      ...(currentItem ? [currentItem] : []),
+      ...workedItems,
+      ...unworkedItems
+    ];
   }
 
   private computeItemParticipations(answers: UserAnswer[], acts: Season[]): Record<ForgeItemName, number> {
@@ -176,6 +203,21 @@ export class ProfilePage {
     if (normalized.includes('sandalia') || normalized.includes('sandalias')) return 'Sandalias';
     if (normalized.includes('escudo')) return 'Escudo';
     if (normalized.includes('espada')) return 'Espada';
+    return null;
+  }
+
+  private getCurrentActItem(acts: Season[]): ForgeItemName | null {
+    const activeActs = acts
+      .filter((act) => act.isActive)
+      .sort((a, b) => this.toDateKey(b.startsAt).localeCompare(this.toDateKey(a.startsAt)));
+
+    for (const act of activeActs) {
+      const itemName = this.resolveItemName(act.currentItemKey ?? '');
+      if (itemName) {
+        return itemName;
+      }
+    }
+
     return null;
   }
 

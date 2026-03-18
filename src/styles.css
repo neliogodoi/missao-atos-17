@@ -235,6 +235,17 @@ textarea:focus-visible {
 	}
 }
 
+@media (max-width: 700px) {
+	input[type='date'] {
+		max-width: 100%;
+	}
+
+	form,
+	label {
+		min-width: 0;
+	}
+}
+
 .btn-disabled,
 .btn-disabled:hover {
 	background: var(--surface-2);
@@ -265,6 +276,31 @@ input[type='date'] {
 	inline-size: 100%;
 	max-inline-size: 100%;
 	min-inline-size: 0;
+	appearance: none;
+	-webkit-appearance: none;
+	padding-right: 0.5rem;
+	font-size: 16px;
+}
+
+input[type='date']::-webkit-date-and-time-value {
+	text-align: left;
+	min-width: 0;
+}
+
+input[type='date']::-webkit-datetime-edit,
+input[type='date']::-webkit-datetime-edit-text,
+input[type='date']::-webkit-datetime-edit-month-field,
+input[type='date']::-webkit-datetime-edit-day-field,
+input[type='date']::-webkit-datetime-edit-year-field {
+	padding: 0;
+	min-width: 0;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+	margin: 0;
+	padding: 0;
+	max-width: 1.15rem;
+	flex-shrink: 0;
 }
 
 textarea {

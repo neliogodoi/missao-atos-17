@@ -6,6 +6,7 @@ import {
   deleteField,
   doc,
   docData,
+  getDocs,
   limit,
   orderBy,
   query,
@@ -248,95 +249,107 @@ export class GameRepository {
     const byDateRef = doc(this.firestore, `users/${uid}/answersByDate/${mission.dateKey}`);
     const normalizedComment = comment.trim();
 
-    return runTransaction(this.firestore, async (transaction) => {
-      const [userSnap, userStatsSnap, questionSnap, byMissionSnap, byDateSnap] = await Promise.all([
-        transaction.get(userRef),
-        transaction.get(userStatsRef),
-        transaction.get(questionRef),
-        transaction.get(byMissionRef),
-        transaction.get(byDateRef)
-      ]);
+    return this.getPreviousMissionDateKey(mission.dateKey).then((previousMissionDateKey) =>
+      runTransaction(this.firestore, async (transaction) => {
+        const previousMissionAnswerRef = previousMissionDateKey
+          ? doc(this.firestore, `users/${uid}/answersByDate/${previousMissionDateKey}`)
+          : null;
+        const [userSnap, userStatsSnap, questionSnap, byMissionSnap, byDateSnap, previousMissionAnswerSnap] =
+          await Promise.all([
+            transaction.get(userRef),
+            transaction.get(userStatsRef),
+            transaction.get(questionRef),
+            transaction.get(byMissionRef),
+            transaction.get(byDateRef),
+            previousMissionAnswerRef ? transaction.get(previousMissionAnswerRef) : Promise.resolve(null)
+          ]);
 
-      if (byMissionSnap.exists() || byDateSnap.exists()) {
-        throw new Error('Você já respondeu hoje.');
-      }
-      if (!userSnap.exists()) {
-        throw new Error('Usuário não encontrado.');
-      }
-      if (!questionSnap.exists()) {
-        throw new Error('Pergunta da missão não encontrada.');
-      }
+        if (byMissionSnap.exists() || byDateSnap.exists()) {
+          throw new Error('Você já respondeu hoje.');
+        }
+        if (!userSnap.exists()) {
+          throw new Error('Usuário não encontrado.');
+        }
+        if (!questionSnap.exists()) {
+          throw new Error('Pergunta da missão não encontrada.');
+        }
 
-      const question = questionSnap.data() as Question;
-      const xpEarned = this.gameScoringService.computeXpForMission(question, selectedIndex, normalizedComment);
-      const previousStats = userStatsSnap.exists()
-        ? this.parseUserStats(userStatsSnap.data() as Record<string, unknown>)
-        : null;
-      const previousTotalXp = previousStats?.totalXp ?? 0;
-      const previousStreak = previousStats?.streak ?? 0;
-      const previousLastAnswerDateKey = previousStats?.lastAnswerDateKey ?? '';
-      const role = this.parseUserRole((userSnap.data() as Record<string, unknown>)['role']);
-      const displayName = this.parseString((userSnap.data() as Record<string, unknown>)['displayName']);
-      const photoURL = this.parseString((userSnap.data() as Record<string, unknown>)['photoURL']);
+        const question = questionSnap.data() as Question;
+        const xpEarned = this.gameScoringService.computeXpForMission(question, selectedIndex, normalizedComment);
+        const previousStats = userStatsSnap.exists()
+          ? this.parseUserStats(userStatsSnap.data() as Record<string, unknown>)
+          : null;
+        const previousTotalXp = previousStats?.totalXp ?? 0;
+        const previousStreak = previousStats?.streak ?? 0;
+        const previousLastAnswerDateKey = previousStats?.lastAnswerDateKey ?? '';
+        const role = this.parseUserRole((userSnap.data() as Record<string, unknown>)['role']);
+        const displayName = this.parseString((userSnap.data() as Record<string, unknown>)['displayName']);
+        const photoURL = this.parseString((userSnap.data() as Record<string, unknown>)['photoURL']);
+        const participatedInLastAvailableMission = previousMissionDateKey
+          ? previousMissionAnswerSnap?.exists() ?? false
+          : false;
 
-      const { nextStreak, nextLastAnswerDateKey } = this.computeStreakAfterAnswer({
-        previousStreak,
-        previousLastAnswerDateKey,
-        missionDateKey: mission.dateKey
-      });
-
-      const byMissionPayload: {
-        missionId: string;
-        dateKey: string;
-        selectedIndex: number;
-        comment?: string;
-        createdAt: ReturnType<typeof serverTimestamp>;
-      } = {
-        missionId: mission.id,
-        dateKey: mission.dateKey,
-        selectedIndex,
-        createdAt: serverTimestamp()
-      };
-      const byDatePayload: {
-        dateKey: string;
-        missionId: string;
-        selectedIndex: number;
-        comment?: string;
-        createdAt: ReturnType<typeof serverTimestamp>;
-      } = {
-        dateKey: mission.dateKey,
-        missionId: mission.id,
-        selectedIndex,
-        createdAt: serverTimestamp()
-      };
-
-      if (normalizedComment.length > 0) {
-        byMissionPayload.comment = normalizedComment;
-        byDatePayload.comment = normalizedComment;
-      }
-
-      transaction.set(byMissionRef, byMissionPayload);
-      transaction.set(byDateRef, byDatePayload);
-      if (userStatsSnap.exists()) {
-        transaction.update(userStatsRef, {
-          totalXp: previousTotalXp + xpEarned,
-          streak: nextStreak,
-          lastAnswerDateKey: nextLastAnswerDateKey,
-          updatedAt: serverTimestamp()
+        const { nextStreak, nextLastAnswerDateKey } = this.computeStreakAfterAnswer({
+          previousStreak,
+          previousLastAnswerDateKey,
+          missionDateKey: mission.dateKey,
+          hasPreviousAvailableMission: !!previousMissionDateKey,
+          participatedInLastAvailableMission
         });
-      } else {
-        transaction.set(userStatsRef, {
-          userId: uid,
-          role,
-          displayName,
-          photoURL,
-          totalXp: xpEarned,
-          streak: 1,
-          lastAnswerDateKey: mission.dateKey,
-          updatedAt: serverTimestamp()
-        });
-      }
-    });
+
+        const byMissionPayload: {
+          missionId: string;
+          dateKey: string;
+          selectedIndex: number;
+          comment?: string;
+          createdAt: ReturnType<typeof serverTimestamp>;
+        } = {
+          missionId: mission.id,
+          dateKey: mission.dateKey,
+          selectedIndex,
+          createdAt: serverTimestamp()
+        };
+        const byDatePayload: {
+          dateKey: string;
+          missionId: string;
+          selectedIndex: number;
+          comment?: string;
+          createdAt: ReturnType<typeof serverTimestamp>;
+        } = {
+          dateKey: mission.dateKey,
+          missionId: mission.id,
+          selectedIndex,
+          createdAt: serverTimestamp()
+        };
+
+        if (normalizedComment.length > 0) {
+          byMissionPayload.comment = normalizedComment;
+          byDatePayload.comment = normalizedComment;
+        }
+
+        transaction.set(byMissionRef, byMissionPayload);
+        transaction.set(byDateRef, byDatePayload);
+        if (userStatsSnap.exists()) {
+          transaction.update(userStatsRef, {
+            totalXp: previousTotalXp + xpEarned,
+            streak: nextStreak,
+            lastAnswerDateKey: nextLastAnswerDateKey,
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          transaction.set(userStatsRef, {
+            userId: uid,
+            role,
+            displayName,
+            photoURL,
+            totalXp: xpEarned,
+            streak: 1,
+            lastAnswerDateKey: mission.dateKey,
+            updatedAt: serverTimestamp()
+          });
+        }
+      })
+    );
   }
 
   updateUserAnswerComment(
@@ -451,8 +464,16 @@ export class GameRepository {
     previousStreak: number;
     previousLastAnswerDateKey: string;
     missionDateKey: string;
+    hasPreviousAvailableMission: boolean;
+    participatedInLastAvailableMission: boolean;
   }): { nextStreak: number; nextLastAnswerDateKey: string } {
-    const { previousStreak, previousLastAnswerDateKey, missionDateKey } = args;
+    const {
+      previousStreak,
+      previousLastAnswerDateKey,
+      missionDateKey,
+      hasPreviousAvailableMission,
+      participatedInLastAvailableMission
+    } = args;
 
     if (!previousLastAnswerDateKey) {
       return { nextStreak: 1, nextLastAnswerDateKey: missionDateKey };
@@ -473,18 +494,30 @@ export class GameRepository {
       };
     }
 
-    const yesterdayOfMission = this.gameScoringService.getYesterdayDateKey(missionDateKey);
-    if (yesterdayOfMission === previousLastAnswerDateKey) {
+    if (!hasPreviousAvailableMission) {
       return {
-        nextStreak: previousStreak + 1,
+        nextStreak: 1,
         nextLastAnswerDateKey: missionDateKey
       };
     }
 
     return {
-      nextStreak: 1,
+      nextStreak: participatedInLastAvailableMission ? previousStreak + 1 : 1,
       nextLastAnswerDateKey: missionDateKey
     };
+  }
+
+  private async getPreviousMissionDateKey(currentMissionDateKey: string): Promise<string | null> {
+    const ref = collection(this.firestore, 'dailyMissions');
+    const q = query(
+      ref,
+      where('dateKey', '<', currentMissionDateKey),
+      orderBy('dateKey', 'desc'),
+      limit(1)
+    );
+    const snap = await getDocs(q);
+    const previousMission = snap.docs[0]?.data() as DailyMission | undefined;
+    return previousMission?.dateKey ?? null;
   }
 
   listUserAnswersInRange(uid: string, startDateKey: string, endDateKey: string): Observable<UserAnswer[]> {

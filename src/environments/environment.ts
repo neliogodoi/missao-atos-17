@@ -1,5 +1,7 @@
 export const environment = {
   production: false,
+  bibleApiToken:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdHIiOiJUaHUgRGVjIDA0IDIwMjUgMTE6MTk6MzYgR01UKzAwMDAubmVsaW9hcHBAZ21haWwuY29tIiwiaWF0IjoxNzY0ODQ3MTc2fQ.J_UKW60gcddcFGrQRxe05cQRNznxM_G0ExfrBQtTA2c',
   firebase: {
     apiKey: 'AIzaSyBcmGjqfTyDCCarLGT_L0qFK_5D-bnWaBs',
     authDomain: 'draw-holy.firebaseapp.com',

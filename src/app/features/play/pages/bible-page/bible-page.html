@@ -1,0 +1,50 @@
+<section class="bible-page">
+  <section class="bible-card">
+    <header class="bible-head">
+      <div>
+        <p class="kicker">Leitura</p>
+        <h2>Bíblia</h2>
+      </div>
+      <p class="chapter-label">{{ chapterLabel() }}</p>
+    </header>
+
+    <div class="bible-controls">
+      <label class="field">
+        <span>Livro</span>
+        <select [value]="selectedBook()" (change)="onBookChange($event)">
+          <option *ngFor="let book of books" [value]="book.code">{{ book.name }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Capítulo</span>
+        <div class="chapter-control">
+          <button type="button" (click)="onPrevChapter()" aria-label="Capítulo anterior">-</button>
+          <input type="number" min="1" [value]="selectedChapter()" (change)="onChapterInput($event)" />
+          <button type="button" (click)="onNextChapter()" aria-label="Próximo capítulo">+</button>
+        </div>
+      </label>
+    </div>
+
+    <div class="version-list">
+      <button
+        type="button"
+        *ngFor="let version of versions"
+        [class.active]="version.key === selectedVersion()"
+        (click)="onVersionChange(version.key)"
+      >
+        {{ version.label }}
+      </button>
+    </div>
+
+    <p class="empty" *ngIf="loading()">Carregando capítulo...</p>
+    <p class="empty" *ngIf="!loading() && verses().length === 0">Não foi possível carregar o capítulo.</p>
+
+    <ol class="verse-list" *ngIf="!loading() && verses().length > 0">
+      <li *ngFor="let verse of verses()">
+        <span>{{ verse.ref }}</span>
+        <p>{{ getVerseText(verse) }}</p>
+      </li>
+    </ol>
+  </section>
+</section>

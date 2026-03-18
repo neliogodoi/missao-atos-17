@@ -31,6 +31,10 @@ export const PLAY_ROUTES: Routes = [
         loadComponent: () => import('./pages/prayers-page/prayers-page').then((m) => m.PrayersPage)
       },
       {
+        path: 'biblia',
+        loadComponent: () => import('./pages/bible-page/bible-page').then((m) => m.BiblePage)
+      },
+      {
         path: 'perfil',
         loadComponent: () => import('./pages/profile-page/profile-page').then((m) => m.ProfilePage)
       }
